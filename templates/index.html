@@ -4,31 +4,57 @@
     <meta charset="UTF-8">
     <title>{{ .Name }} - Forum Sports de Combat</title>
     <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
-        .hero { text-align:center; padding: 40px 10px; }
-        .hero h2 { color: #ffd700; margin: 0 0 8px; }
-        .categories { display:grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap:16px; margin-top:24px; }
-        .cat { background: rgba(255,255,255,0.03); padding:14px; border-radius:10px; text-align:center; border:1px solid rgba(255,255,255,0.03);} 
-        .cat a { color:#ffb380; text-decoration:none; font-weight:700; }
+        
+        .hero { padding: 36px 18px 22px; }
     </style>
 </head>
 <body>
-    <main class="page-container">
-        <section class="card">
-            <div class="hero">
-                <h1>{{ .Name }}</h1>
-                <h2>Le forum francophone des sports de combat</h2>
-                <p>Discussions techniques, entraînement, résultats et équipement.</p>
-                <p style="margin-top:12px;"><a href="/register" class="btn">Créer un compte</a> &nbsp; <a href="/login" class="btn">Se connecter</a></p>
-            </div>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="logo">⚔️ <span class="logo-text">{{ .Name }}</span></div>
+            <nav class="top-nav">
+                <a href="/">Accueil</a>
+                <a href="/register">S'inscrire</a>
+                <a href="/login">Se connecter</a>
+            </nav>
+        </div>
+    </header>
 
-            <h3 style="color:#e8e8e8; margin-top:20px;">Catégories</h3>
-            <div class="categories">
+    <main class="home-root">
+        <section class="hero card">
+            <div class="hero-content">
+                <h1 class="site-title">{{ .Name }}</h1>
+                <p class="tagline">Le forum francophone des sports de combat — techniques, entraînements, actualités.</p>
+                <div class="hero-cta">
+                    <a class="btn primary" href="/register">Rejoindre la communauté</a>
+                    <a class="btn ghost" href="/login">Connexion</a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="blade"></div>
+            </div>
+        </section>
+
+        <section class="container card">
+            <h2 class="section-title">Catégories populaires</h2>
+            <div class="categories-grid">
                 {{ range .Categories }}
-                <div class="cat"><a href="#">{{ . }}</a></div>
+                <article class="category-card">
+                    <div class="cat-emoji">🥊</div>
+                    <h3 class="cat-name">{{ . }}</h3>
+                    <p class="cat-desc">Discussions et ressources sur {{ . }}.</p>
+                    <a class="cat-link" href="#">Voir les sujets →</a>
+                </article>
                 {{ end }}
             </div>
         </section>
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">© {{ .Name }} • Crée pour les passionnés de sports de combat</div>
+    </footer>
+
 </body>
 </html>
