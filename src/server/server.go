@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "Bonjour depuis le serveur Go !")
 }
 
-func main() {
+func StartServer() {
 	http.HandleFunc("/", helloHandler)
 
 	addr := ":8080"
