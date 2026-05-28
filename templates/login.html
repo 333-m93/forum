@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion - Forum Sports de Combat</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="page-container">
+        <section class="card">
+            <h1>Connexion</h1>
+            {{ if .Message }}
+            <div class="alert">{{ .Message }}</div>
+            {{ end }}
+            <form method="POST" action="/login" class="auth-form">
+                <label>Nom d'utilisateur</label>
+                <input type="text" name="username" required>
+                <label>Mot de passe</label>
+                <input type="password" name="password" required>
+                <button type="submit">Se connecter</button>
+            </form>
+            <p class="footer-link">Pas encore inscrit ? <a href="/register">Créer un compte</a></p>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription - Forum Sports de Combat</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="page-container">
+        <section class="card">
+            <h1>Inscription</h1>
+            {{ if .Message }}
+            <div class="alert">{{ .Message }}</div>
+            {{ end }}
+            <form method="POST" action="/register" class="auth-form">
+                <label>Nom d'utilisateur</label>
+                <input type="text" name="username" required>
+                <label>Mot de passe</label>
+                <input type="password" name="password" required>
+                <button type="submit">Créer un compte</button>
+            </form>
+            <p class="footer-link">Déjà un compte ? <a href="/login">Connexion</a></p>
+        </section>
+    </main>
+</body>
+</html>
