@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"forum.com/m/src/config"
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -11,11 +13,12 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func StartServer() {
+	cfg := config.Load()
+
 	http.HandleFunc("/", helloHandler)
 
-	addr := ":8080"
-	log.Printf("Serveur démarré sur %s\n", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
+	log.Printf("Serveur démarré sur %s\n", cfg.Port)
+	if err := http.ListenAndServe(cfg.Port, nil); err != nil {
 		log.Fatalf("Erreur du serveur : %v", err)
 	}
 }
