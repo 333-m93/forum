@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>{{ .Name }}</title>
+    <title>Chat général - Le Dojo</title>
     <link rel="stylesheet" href="/static/style.css">
     <meta name="viewport" content="width=device-width,initial-scale=1">
 </head>
@@ -11,10 +11,11 @@
         <div class="header-inner">
             <div class="logo">
                 <img class="logo-image" src="/static/logo.png" alt="Le Dojo">
-                <span class="logo-text">{{ .Name }}</span>
+                <span class="logo-text">Le Dojo</span>
             </div>
             <nav class="top-nav">
                 <a href="/">Accueil</a>
+                <a href="/chat">Chat général</a>
                 <a href="/register">S'inscrire</a>
                 <a href="/login">Se connecter</a>
             </nav>
@@ -24,23 +25,20 @@
     <main class="home-root">
         <section class="hero card">
             <div class="hero-content">
-                <span class="hero-label">Dojo</span>
-                <h1 class="site-title">{{ .Name }}</h1>
-                <div class="hero-cta">
-                    <a class="btn primary" href="/register">Entrer au Dojo</a>
-                    <a class="btn ghost" href="/login">Déjà membre</a>
-                </div>
+                <span class="hero-label">Discussion</span>
+                <h1 class="site-title">Chat général</h1>
+                <p class="tagline">Choisis une salle de discussion pour échanger sur les sports de combat, les techniques, et la vie du Dojo.</p>
             </div>
         </section>
 
         <section class="container card">
-            <h2 class="section-title">Catégories populaires</h2>
+            <h2 class="section-title">Salles de discussion</h2>
             <div class="categories-grid">
                 {{ range .Categories }}
                 <article class="category-card">
                     <h3 class="cat-name">{{ .Title }}</h3>
                     <p class="cat-desc">{{ .Description }}</p>
-                    <a class="cat-link" href="/discussion/{{ .Slug }}">Voir les sujets →</a>
+                    <a class="cat-link" href="/discussion/{{ .Slug }}">Ouvrir la discussion →</a>
                 </article>
                 {{ end }}
             </div>
@@ -48,7 +46,7 @@
     </main>
 
     <footer class="site-footer">
-        <div class="footer-inner">© {{ .Name }} • Le temple où chaque coup forge le caractère</div>
+        <div class="footer-inner">© Le Dojo • L’espace des combattants</div>
     </footer>
 </body>
 </html>

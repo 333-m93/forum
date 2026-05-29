@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ .Category.Title }} - Le Dojo</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="logo">
+                <img class="logo-image" src="/static/logo.png" alt="Le Dojo">
+                <span class="logo-text">Le Dojo</span>
+            </div>
+            <nav class="top-nav">
+                <a href="/">Accueil</a>
+                <a href="/chat">Chat général</a>
+                <a href="/register">S'inscrire</a>
+                <a href="/login">Se connecter</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="discussion-root">
+        <section class="discussion-hero card">
+            <span class="hero-label">Salon de discussion</span>
+            <h1 class="site-title">{{ .Category.Title }}</h1>
+            <p class="tagline">{{ .Category.Description }}</p>
+        </section>
+
+        <div class="discussion-grid">
+            <section class="discussion-card card">
+                <div class="discussion-header">
+                    <h2>Messages récents</h2>
+                </div>
+                {{ if .Error }}
+                <div class="alert">{{ .Error }}</div>
+                {{ end }}
+                {{ if .Success }}
+                <div class="success">Message envoyé avec succès.</div>
+                {{ end }}
+                <div class="messages-list">
+                    {{ if .Messages }}
+                        {{ range .Messages }}
+                        <article class="message-card">
+                            <div class="message-title"><strong>{{ .Author }}</strong> • <span>{{ .When }}</span></div>
+                            <p>{{ .Content }}</p>
+                        </article>
+                        {{ end }}
+                    {{ else }}
+                        <p class="empty-state">Aucun message pour l'instant. Sois le premier à lancer la conversation !</p>
+                    {{ end }}
+                </div>
+                <form method="POST" action="/discussion/{{ .Category.Slug }}" class="chat-form">
+                    <label>Ton pseudo</label>
+                    <input type="text" name="author" placeholder="Ex : Fighter92" required>
+                    <label>Ton message</label>
+                    <textarea name="content" rows="5" placeholder="Partage ton ressenti, pose une question..." required></textarea>
+                    <button type="submit">Envoyer</button>
+                </form>
+            </section>
+
+            <aside class="discussion-sidebar card">
+                <h2>Autres discussions</h2>
+                <div class="sidebar-list">
+                    {{ range .Categories }}
+                    <a class="sidebar-link" href="/discussion/{{ .Slug }}">{{ .Title }}</a>
+                    {{ end }}
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">© Le Dojo • Un forum pour chaque coup et chaque question</div>
+    </footer>
+</body>
+</html>
