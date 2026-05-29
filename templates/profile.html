@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil - Le Dojo</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="logo">
+                <img class="logo-image" src="/static/logo.png" alt="Le Dojo">
+                <span class="logo-text">Le Dojo</span>
+            </div>
+            <nav class="top-nav">
+                <a href="/">Accueil</a>
+                <a href="/profile">Profil</a>
+                <a href="/logout">Déconnexion</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-container">
+        <section class="card profile-card">
+            <div class="profile-hero">
+                <h1>Bienvenue, {{ .Username }}</h1>
+                <p>Voici ton espace personnel au Dojo.</p>
+            </div>
+
+            <div class="profile-details">
+                <h2>Mes informations</h2>
+                <ul>
+                    <li><strong>Nom d'utilisateur :</strong> {{ .Username }}</li>
+                    <li><strong>Rôle :</strong> Membre du Dojo</li>
+                    <li><strong>Statut :</strong> Connecté</li>
+                </ul>
+            </div>
+
+            <div class="profile-actions">
+                <a class="btn primary" href="/discussion/general">Voir les discussions</a>
+                <a class="btn ghost" href="/logout">Se déconnecter</a>
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">© Le Dojo • Ta salle virtuelle pour progresser</div>
+    </footer>
+</body>
+</html>

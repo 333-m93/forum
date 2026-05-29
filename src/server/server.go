@@ -145,6 +145,8 @@ func StartServer() {
 	mux.HandleFunc("/discussion/", discussionHandler)
 	mux.HandleFunc("/register", registerHandler)
 	mux.HandleFunc("/login", loginHandler)
+	mux.HandleFunc("/profile", profileHandler)
+	mux.HandleFunc("/logout", logoutHandler)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	log.Printf("Serveur démarré sur %s\n", cfg.Port)

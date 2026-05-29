@@ -63,10 +63,60 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Fprintf(w, `<h1>Connexion réussie</h1><p>Bienvenue %s !</p><p><a href="/">Retour à l'accueil</a></p>`, html.EscapeString(username))
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_user",
+			Value:    username,
+			Path:     "/",
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+			MaxAge:   86400,
+		})
+		http.Redirect(w, r, "/profile", http.StatusSeeOther)
 	default:
 		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 	}
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_user",
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		MaxAge:   -1,
+	})
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+func profileHandler(w http.ResponseWriter, r *http.Request) {
+	username, err := getSessionUsername(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	data := struct {
+		Name     string
+		Username string
+	}{
+		Name:     "Le Dojo",
+		Username: username,
+	}
+
+	if err := authTemplates.ExecuteTemplate(w, "profile.html", data); err != nil {
+		http.Error(w, "Erreur template : "+html.EscapeString(err.Error()), http.StatusInternalServerError)
+	}
+}
+
+func getSessionUsername(r *http.Request) (string, error) {
+	cookie, err := r.Cookie("session_user")
+	if err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(cookie.Value) == "" {
+		return "", errors.New("pas connecté")
+	}
+	return cookie.Value, nil
 }
 
 func renderRegisterForm(w http.ResponseWriter, message string) {
