@@ -2,13 +2,31 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion - Forum Sports de Combat</title>
+    <title>Connexion - Le Dojo</title>
     <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
 </head>
 <body>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="logo">
+                <img class="logo-image" src="/static/logo.png" alt="Le Dojo">
+                <span class="logo-text">Le Dojo</span>
+            </div>
+            <nav class="top-nav">
+                <a href="/">Accueil</a>
+                <a href="/register">S'inscrire</a>
+                <a href="/login">Se connecter</a>
+            </nav>
+        </div>
+    </header>
+
     <main class="page-container">
-        <section class="card">
-            <h1>Connexion</h1>
+        <section class="card auth-card">
+            <div class="auth-hero">
+                <h1>Connexion</h1>
+                <p>Connexion rapide pour reprendre ta place au Dojo.</p>
+            </div>
             {{ if .Message }}
             <div class="alert">{{ .Message }}</div>
             {{ end }}
@@ -22,5 +40,9 @@
             <p class="footer-link">Pas encore inscrit ? <a href="/register">Créer un compte</a></p>
         </section>
     </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">© Le Dojo • Rejoins le temple du combat</div>
+    </footer>
 </body>
 </html>

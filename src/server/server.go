@@ -16,8 +16,8 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 		Name       string
 		Categories []string
 	}{
-		Name:       "CombatArena",
-		Categories: []string{"Chat général", "MMA", "Boxe Anglaise", "Muay Thai", "Jujitsu Bresilien", "Grappling", "Autres arts martiaux"},
+		Name:       "Le Dojo",
+		Categories: []string{"Chat général", "MMA", "Boxe Anglaise", "Muay Thai", "Jujitsu Brésilien", "Grappling", "Autres sports de combat"},
 	}
 	if err := authTemplates.ExecuteTemplate(w, "index.html", data); err != nil {
 		http.Error(w, "Erreur template : "+err.Error(), http.StatusInternalServerError)

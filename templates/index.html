@@ -2,18 +2,17 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>{{ .Name }} - Forum Sports de Combat</title>
+    <title>{{ .Name }}</title>
     <link rel="stylesheet" href="/static/style.css">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <style>
-        
-        .hero { padding: 36px 18px 22px; }
-    </style>
 </head>
 <body>
     <header class="site-header">
         <div class="header-inner">
-            <div class="logo">⚔️ <span class="logo-text">{{ .Name }}</span></div>
+            <div class="logo">
+                <img class="logo-image" src="/static/logo.png" alt="Le Dojo">
+                <span class="logo-text">{{ .Name }}</span>
+            </div>
             <nav class="top-nav">
                 <a href="/">Accueil</a>
                 <a href="/register">S'inscrire</a>
@@ -25,15 +24,12 @@
     <main class="home-root">
         <section class="hero card">
             <div class="hero-content">
+                <span class="hero-label">Dojo</span>
                 <h1 class="site-title">{{ .Name }}</h1>
-                <p class="tagline">Le forum francophone des sports de combat — techniques, entraînements, actualités.</p>
                 <div class="hero-cta">
-                    <a class="btn primary" href="/register">Rejoindre la communauté</a>
-                    <a class="btn ghost" href="/login">Connexion</a>
+                    <a class="btn primary" href="/register">Entrer au Dojo</a>
+                    <a class="btn ghost" href="/login">Déjà membre</a>
                 </div>
-            </div>
-            <div class="hero-visual">
-                <div class="blade"></div>
             </div>
         </section>
 
@@ -42,7 +38,6 @@
             <div class="categories-grid">
                 {{ range .Categories }}
                 <article class="category-card">
-                    <div class="cat-emoji">🥊</div>
                     <h3 class="cat-name">{{ . }}</h3>
                     <p class="cat-desc">Discussions et ressources sur {{ . }}.</p>
                     <a class="cat-link" href="#">Voir les sujets →</a>
@@ -53,8 +48,7 @@
     </main>
 
     <footer class="site-footer">
-        <div class="footer-inner">© {{ .Name }} • Crée pour les passionnés de sports de combat</div>
+        <div class="footer-inner">© {{ .Name }} • Le temple où chaque coup forge le caractère</div>
     </footer>
-
 </body>
 </html>
