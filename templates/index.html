@@ -40,11 +40,43 @@
                 <article class="category-card">
                     <h3 class="cat-name">{{ . }}</h3>
                     <p class="cat-desc">Discussions et ressources sur {{ . }}.</p>
-                    <a class="cat-link" href="#">Voir les sujets →</a>
+                    <a class="cat-link" href="#" data-cat="{{ . }}">Ouvrir le chat →</a>
                 </article>
                 {{ end }}
             </div>
         </section>
+
+        <!-- Floating right-side chat pane (outside centered content) -->
+        <aside id="floating-chat" class="floating-chat" aria-hidden="true">
+            <div class="chat-placeholder">
+                <h3>Sélectionnez un chat à gauche</h3>
+                <p>Le chat sélectionné s'ouvrira dans cette zone à droite.</p>
+            </div>
+        </aside>
+
+        <script>
+            // Load chat into the floating right pane when a category link is clicked
+            document.addEventListener('click', function(e) {
+                const a = e.target.closest && e.target.closest('.cat-link');
+                if (!a) return;
+                e.preventDefault();
+                const cat = a.getAttribute('data-cat');
+                fetch('/chat?name=' + encodeURIComponent(cat))
+                    .then(res => res.text())
+                    .then(html => {
+                        const pane = document.getElementById('floating-chat');
+                        pane.innerHTML = html;
+                        pane.setAttribute('aria-hidden', 'false');
+                        pane.scrollTop = pane.scrollHeight;
+                    })
+                    .catch(err => {
+                        const pane = document.getElementById('floating-chat');
+                        pane.innerHTML = '<div class="chat-error">Impossible de charger le chat.</div>';
+                        pane.setAttribute('aria-hidden', 'false');
+                        console.error(err);
+                    });
+            });
+        </script>
     </main>
 
     <footer class="site-footer">

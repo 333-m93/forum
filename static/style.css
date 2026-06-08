@@ -113,6 +113,32 @@ body::before {
     margin-top: 24px;
 }
 
+/* Floating right-side chat panel */
+.floating-chat {
+    position: fixed;
+    top: 110px; /* leave space for header - moved down to show full chat */
+    right: 20px;
+    bottom: 40px;
+    width: calc(100% - 760px);
+    max-width: 900px;
+    min-width: 380px;
+    background: rgba(12,12,14,0.96);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    border: 1px solid rgba(255,255,255,0.04);
+    overflow: auto;
+    z-index: 8;
+}
+
+.floating-chat .chat-placeholder {
+    color: #d0d0d0;
+}
+
+@media (max-width: 1100px) {
+    .floating-chat { display: none; }
+}
+
 .hero {
     display: block;
     padding: 40px 34px;
