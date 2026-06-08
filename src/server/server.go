@@ -38,7 +38,7 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	html += "<div class=\"chat-message\">Bienvenue dans le chat <strong>" + template.HTMLEscapeString(name) + "</strong>.</div>"
 	html += "<div class=\"chat-message\">Ici les messages apparaîtront.</div>"
 	html += "</div>"
-	html += "<div style='margin-top:16px;'><form onsubmit=\"event.preventDefault();return false;\"><input placeholder=\"Écrire un message...\" style=\"width:76%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:#0b0b0d;color:#fff;\"><button class=\"btn primary\" style=\"margin-left:8px;\">Envoyer</button></form></div>"
+	html += "<div class=\"chat-footer\" style='margin-top:16px;'><form class=\"chat-form\" onsubmit=\"event.preventDefault();return false;\"><input class=\"chat-input\" placeholder=\"Écrire un message...\" type=\"text\"><button class=\"btn primary chat-send\">Envoyer</button></form></div>"
 	w.Write([]byte(html))
 }
 
