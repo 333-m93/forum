@@ -1,17 +1,24 @@
-FROM golang:1.21-alpine AS builder
+FROM golang:1.22-alpine AS builder
 
 WORKDIR /app
 
+# Proxy Go (important pour Render et Alpine)
 ENV GOPROXY=https://proxy.golang.org,direct
-ENV GO111MODULE=on
+ENV GOSUMDB=sum.golang.org
 
+# Copier dépendances
 COPY go.mod go.sum ./
-RUN go mod download
 
+# Télécharger les modules (avec logs si erreur)
+RUN go mod download -x
+
+# Copier le reste du code
 COPY . .
 
+# Build de l'app
 RUN CGO_ENABLED=0 GOOS=linux go build -o forum main.go
 
+# Image finale légère
 FROM alpine:latest
 
 RUN apk --no-cache add ca-certificates
