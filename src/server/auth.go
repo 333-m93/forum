@@ -3,7 +3,6 @@ package server
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"html"
 	"net/http"
 	"strings"
@@ -24,7 +23,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err := createUser(username, password)
+		userID, err := createUser(username, password)
 		if err != nil {
 			if strings.Contains(err.Error(), "Duplicate entry") {
 				renderRegisterForm(w, "Ce nom d'utilisateur existe déjà.")
@@ -34,7 +33,23 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Fprintf(w, `<h1>Inscription réussie</h1><p>Bienvenue %s !</p><p><a href="/login">Se connecter</a></p>`, html.EscapeString(username))
+		// Créer une session et rediriger vers l'accueil
+		sessionID, err := CreateSession(userID, dbConn)
+		if err != nil {
+			http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_id",
+			Value:    sessionID,
+			Path:     "/",
+			MaxAge:   86400,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		})
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	default:
 		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 	}
@@ -53,7 +68,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		ok, err := authenticateUser(username, password)
+		userID, ok, err := authenticateUser(username, password)
 		if err != nil {
 			http.Error(w, "Erreur serveur : "+html.EscapeString(err.Error()), http.StatusInternalServerError)
 			return
@@ -63,7 +78,23 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Fprintf(w, `<h1>Connexion réussie</h1><p>Bienvenue %s !</p><p><a href="/">Retour à l'accueil</a></p>`, html.EscapeString(username))
+		// Créer une session
+		sessionID, err := CreateSession(userID, dbConn)
+		if err != nil {
+			http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+			return
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:     "session_id",
+			Value:    sessionID,
+			Path:     "/",
+			MaxAge:   86400,
+			HttpOnly: true,
+			SameSite: http.SameSiteLaxMode,
+		})
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	default:
 		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 	}
@@ -83,38 +114,61 @@ func renderLoginForm(w http.ResponseWriter, message string) {
 	}
 }
 
-func createUser(username, password string) error {
+func createUser(username, password string) (int, error) {
 	if dbConn == nil {
-		return errors.New("connexion à la base non initialisée")
+		return 0, errors.New("connexion à la base non initialisée")
 	}
 
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	_, err = dbConn.Exec(`INSERT INTO users (username, password_hash) VALUES (?, ?)`, username, string(hash))
-	return err
+	result, err := dbConn.Exec(`INSERT INTO users (username, password_hash) VALUES (?, ?)`, username, string(hash))
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	return int(id), err
 }
 
-func authenticateUser(username, password string) (bool, error) {
+func authenticateUser(username, password string) (int, bool, error) {
 	if dbConn == nil {
-		return false, errors.New("connexion à la base non initialisée")
+		return 0, false, errors.New("connexion à la base non initialisée")
 	}
 
+	var userID int
 	var hash string
-	err := dbConn.QueryRow(`SELECT password_hash FROM users WHERE username = ?`, username).Scan(&hash)
+	err := dbConn.QueryRow(`SELECT id, password_hash FROM users WHERE username = ?`, username).Scan(&userID, &hash)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false, nil
+			return 0, false, nil
 		}
-		return false, err
+		return 0, false, err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	if err != nil {
-		return false, nil
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
+		return 0, false, nil
 	}
 
-	return true, nil
+	return userID, true, nil
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_id")
+	if err == nil {
+		DestroySession(cookie.Value, dbConn)
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session_id",
+		Value:    "",
+		Path:     "/",
+		MaxAge:   -1,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

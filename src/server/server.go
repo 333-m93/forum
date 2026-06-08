@@ -54,8 +54,10 @@ func StartServer() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", helloHandler)
 	mux.HandleFunc("/chat", chatHandler)
+	mux.HandleFunc("/api/messages", messagesAPIHandler)
 	mux.HandleFunc("/register", registerHandler)
 	mux.HandleFunc("/login", loginHandler)
+	mux.HandleFunc("/logout", logoutHandler)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
 	log.Printf("Serveur démarré sur %s\n", cfg.Port)
