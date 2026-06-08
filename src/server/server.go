@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"forum.com/m/src/config"
 	"forum.com/m/src/database"
@@ -28,7 +30,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 func chatHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	if name == "" {
-		name = "Chat" 
+		name = "Chat"
 	}
 	// Simple HTML fragment for the chat pane. In future this can be rendered from templates.
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -44,24 +46,45 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 
 func StartServer() {
 	cfg := config.Load()
+
+	// 🔥 IMPORTANT RENDER PORT FIX
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = cfg.Port
+	}
+	if port == "" {
+		port = "8080"
+	}
+
+	if !strings.HasPrefix(port, ":") {
+		port = ":" + port
+	}
+
 	var err error
 	dbConn, err = database.Connect(cfg)
 	if err != nil {
 		log.Fatalf("Erreur de connexion à la DB : %v", err)
 	}
-	defer dbConn.Close()
+
+	// ❌ IMPORTANT: NE PAS defer ici (sinon DB se ferme direct)
+	// defer dbConn.Close()
 
 	mux := http.NewServeMux()
+
 	mux.HandleFunc("/", helloHandler)
 	mux.HandleFunc("/chat", chatHandler)
 	mux.HandleFunc("/api/messages", messagesAPIHandler)
 	mux.HandleFunc("/register", registerHandler)
 	mux.HandleFunc("/login", loginHandler)
 	mux.HandleFunc("/logout", logoutHandler)
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 
-	log.Printf("Serveur démarré sur %s\n", cfg.Port)
-	if err := http.ListenAndServe(cfg.Port, mux); err != nil {
+	mux.Handle("/static/",
+		http.StripPrefix("/static/", http.FileServer(http.Dir("static"))),
+	)
+
+	log.Printf("Serveur démarré sur %s\n", port)
+
+	if err := http.ListenAndServe(port, mux); err != nil {
 		log.Fatalf("Erreur du serveur : %v", err)
 	}
 }
