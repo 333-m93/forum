@@ -5,27 +5,32 @@ services:
     buildCommand: "go build -o forum main.go"
     startCommand: "./forum"
     envVars:
-      - key: APP_PORT
-        value: ":{{ .Port }}"
+      - key: PORT
+        value: "8080"
+
+      # PostgreSQL Render (IMPORTANT)
       - key: DB_HOST
         fromDatabase:
-          name: forum-mysql
+          name: forum-db
           property: host
+
       - key: DB_USER
         fromDatabase:
-          name: forum-mysql
+          name: forum-db
           property: user
+
       - key: DB_PASS
         fromDatabase:
-          name: forum-mysql
+          name: forum-db
           property: password
+
       - key: DB_NAME
         fromDatabase:
-          name: forum-mysql
+          name: forum-db
           property: database
 
 databases:
-  - name: forum-mysql
+  - name: forum-db
     databaseName: forumdb
     user: forum_user
     region: oregon

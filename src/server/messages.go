@@ -22,9 +22,13 @@ type Category struct {
 	Description string `json:"description"`
 }
 
-// GetCategories récupère toutes les catégories
+// GetCategories
 func GetCategories(dbConn *sql.DB) ([]Category, error) {
-	rows, err := dbConn.Query(`SELECT id, name, description FROM categories ORDER BY name`)
+	rows, err := dbConn.Query(`
+		SELECT id, name, description
+		FROM categories
+		ORDER BY name
+	`)
 	if err != nil {
 		return nil, err
 	}
@@ -42,20 +46,28 @@ func GetCategories(dbConn *sql.DB) ([]Category, error) {
 	return categories, rows.Err()
 }
 
-// GetCategoryByName récupère une catégorie par son nom
+// GetCategoryByName (POSTGRES FIX)
 func GetCategoryByName(name string, dbConn *sql.DB) (*Category, error) {
 	var cat Category
-	err := dbConn.QueryRow(`SELECT id, name, description FROM categories WHERE name = ?`, name).Scan(&cat.ID, &cat.Name, &cat.Description)
+
+	err := dbConn.QueryRow(`
+		SELECT id, name, description
+		FROM categories
+		WHERE name = $1
+	`, name).Scan(&cat.ID, &cat.Name, &cat.Description)
+
 	if err != nil {
 		return nil, err
 	}
+
 	return &cat, nil
 }
 
-// PostMessage ajoute un nouveau message
+// PostMessage (POSTGRES FIX)
 func PostMessage(categoryID int, userID int, content string, dbConn *sql.DB) (*Message, error) {
 	result, err := dbConn.Exec(`
-		INSERT INTO messages (category_id, user_id, content) VALUES (?, ?, ?)
+		INSERT INTO messages (category_id, user_id, content)
+		VALUES ($1, $2, $3)
 	`, categoryID, userID, content)
 	if err != nil {
 		return nil, err
@@ -67,7 +79,9 @@ func PostMessage(categoryID int, userID int, content string, dbConn *sql.DB) (*M
 	}
 
 	var username string
-	dbConn.QueryRow(`SELECT username FROM users WHERE id = ?`, userID).Scan(&username)
+	_ = dbConn.QueryRow(`
+		SELECT username FROM users WHERE id = $1
+	`, userID).Scan(&username)
 
 	return &Message{
 		ID:         int(id),
@@ -79,13 +93,13 @@ func PostMessage(categoryID int, userID int, content string, dbConn *sql.DB) (*M
 	}, nil
 }
 
-// GetMessages récupère les messages d'une catégorie (derniers 50)
+// GetMessages (POSTGRES FIX)
 func GetMessages(categoryID int, dbConn *sql.DB) ([]Message, error) {
 	rows, err := dbConn.Query(`
 		SELECT m.id, m.category_id, m.user_id, u.username, m.content, m.created_at
 		FROM messages m
 		JOIN users u ON m.user_id = u.id
-		WHERE m.category_id = ?
+		WHERE m.category_id = $1
 		ORDER BY m.created_at DESC
 		LIMIT 50
 	`, categoryID)
@@ -97,13 +111,20 @@ func GetMessages(categoryID int, dbConn *sql.DB) ([]Message, error) {
 	var messages []Message
 	for rows.Next() {
 		var msg Message
-		if err := rows.Scan(&msg.ID, &msg.CategoryID, &msg.UserID, &msg.Username, &msg.Content, &msg.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&msg.ID,
+			&msg.CategoryID,
+			&msg.UserID,
+			&msg.Username,
+			&msg.Content,
+			&msg.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		messages = append(messages, msg)
 	}
 
-	// Inverser pour avoir les anciens messages en premier
+	// reverse order
 	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
 		messages[i], messages[j] = messages[j], messages[i]
 	}

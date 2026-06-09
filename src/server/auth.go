@@ -2,7 +2,6 @@ package server
 
 import (
 	"database/sql"
-	"errors"
 	"html"
 	"net/http"
 	"strings"
@@ -10,6 +9,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// ==========================
+// REGISTER
+// ==========================
 func registerHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -25,7 +27,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 
 		userID, err := createUser(username, password)
 		if err != nil {
-			if strings.Contains(err.Error(), "Duplicate entry") {
+			if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
 				renderRegisterForm(w, "Ce nom d'utilisateur existe déjà.")
 				return
 			}
@@ -33,7 +35,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Créer une session et rediriger vers l'accueil
 		sessionID, err := CreateSession(userID, dbConn)
 		if err != nil {
 			http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -50,11 +51,12 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 		})
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
-	default:
-		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 	}
 }
 
+// ==========================
+// LOGIN
+// ==========================
 func loginHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -74,11 +76,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if !ok {
-			renderLoginForm(w, "Nom d'utilisateur ou mot de passe incorrect.")
+			renderLoginForm(w, "Identifiants incorrects.")
 			return
 		}
 
-		// Créer une session
 		sessionID, err := CreateSession(userID, dbConn)
 		if err != nil {
 			http.Error(w, "Erreur serveur", http.StatusInternalServerError)
@@ -95,66 +96,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		})
 
 		http.Redirect(w, r, "/", http.StatusSeeOther)
-	default:
-		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 	}
 }
 
-func renderRegisterForm(w http.ResponseWriter, message string) {
-	data := struct{ Message string }{Message: message}
-	if err := authTemplates.ExecuteTemplate(w, "register.html", data); err != nil {
-		http.Error(w, "Erreur template : "+html.EscapeString(err.Error()), http.StatusInternalServerError)
-	}
-}
-
-func renderLoginForm(w http.ResponseWriter, message string) {
-	data := struct{ Message string }{Message: message}
-	if err := authTemplates.ExecuteTemplate(w, "login.html", data); err != nil {
-		http.Error(w, "Erreur template : "+html.EscapeString(err.Error()), http.StatusInternalServerError)
-	}
-}
-
-func createUser(username, password string) (int, error) {
-	if dbConn == nil {
-		return 0, errors.New("connexion à la base non initialisée")
-	}
-
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return 0, err
-	}
-
-	result, err := dbConn.Exec(`INSERT INTO users (username, password_hash) VALUES (?, ?)`, username, string(hash))
-	if err != nil {
-		return 0, err
-	}
-
-	id, err := result.LastInsertId()
-	return int(id), err
-}
-
-func authenticateUser(username, password string) (int, bool, error) {
-	if dbConn == nil {
-		return 0, false, errors.New("connexion à la base non initialisée")
-	}
-
-	var userID int
-	var hash string
-	err := dbConn.QueryRow(`SELECT id, password_hash FROM users WHERE username = ?`, username).Scan(&userID, &hash)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return 0, false, nil
-		}
-		return 0, false, err
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
-		return 0, false, nil
-	}
-
-	return userID, true, nil
-}
-
+// ==========================
+// LOGOUT
+// ==========================
 func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("session_id")
 	if err == nil {
@@ -171,4 +118,71 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+// ==========================
+// DB FUNCTIONS (POSTGRES OK)
+// ==========================
+func createUser(username, password string) (int, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return 0, err
+	}
+
+	var id int
+
+	err = dbConn.QueryRow(`
+		INSERT INTO users (username, password_hash)
+		VALUES ($1, $2)
+		RETURNING id
+	`, username, string(hash)).Scan(&id)
+
+	return id, err
+}
+
+func authenticateUser(username, password string) (int, bool, error) {
+	var userID int
+	var hash string
+
+	err := dbConn.QueryRow(`
+		SELECT id, password_hash
+		FROM users
+		WHERE username = $1
+	`, username).Scan(&userID, &hash)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, false, nil
+		}
+		return 0, false, err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)); err != nil {
+		return 0, false, nil
+	}
+
+	return userID, true, nil
+}
+
+// ==========================
+// RENDER FUNCTIONS (FIX ERROR)
+// ==========================
+func renderRegisterForm(w http.ResponseWriter, message string) {
+	data := struct {
+		Message string
+	}{
+		Message: message,
+	}
+
+	_ = authTemplates.ExecuteTemplate(w, "register.html", data)
+}
+
+func renderLoginForm(w http.ResponseWriter, message string) {
+	data := struct {
+		Message string
+	}{
+		Message: message,
+	}
+
+	_ = authTemplates.ExecuteTemplate(w, "login.html", data)
 }

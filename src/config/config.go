@@ -11,13 +11,22 @@ type Config struct {
 }
 
 func Load() Config {
-	return Config{
-		Port:   getEnv("APP_PORT", ":8080"),
-		DBUser: getEnv("DB_USER", "root"),
+	cfg := Config{
+		Port: getEnv("APP_PORT", ":8080"),
+
+		// DB config (NO LOCAL FALLBACK IN PRODUCTION)
+		DBUser: getEnv("DB_USER", ""),
 		DBPass: getEnv("DB_PASS", ""),
-		DBHost: getEnv("DB_HOST", "127.0.0.1:3306"),
-		DBName: getEnv("DB_NAME", "forumdb"),
+		DBHost: getEnv("DB_HOST", ""),
+		DBName: getEnv("DB_NAME", ""),
 	}
+
+	// Safety check (important)
+	if cfg.DBHost == "" || cfg.DBUser == "" || cfg.DBName == "" {
+		panic("❌ DB configuration missing (check Render environment variables)")
+	}
+
+	return cfg
 }
 
 func getEnv(key, fallback string) string {

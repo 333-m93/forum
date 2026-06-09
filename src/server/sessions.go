@@ -9,13 +9,15 @@ import (
 	"time"
 )
 
-// User représente un utilisateur
+// User
 type User struct {
 	ID       int
 	Username string
 }
 
-// GetSessionUser récupère l'utilisateur depuis un cookie de session
+// ==========================
+// GET SESSION USER
+// ==========================
 func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
@@ -23,11 +25,14 @@ func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
 	}
 
 	sessionID := cookie.Value
+
 	var userID int
 	var expiresAt time.Time
 
 	err = dbConn.QueryRow(`
-		SELECT user_id, expires_at FROM sessions WHERE id = ?
+		SELECT user_id, expires_at
+		FROM sessions
+		WHERE id = $1
 	`, sessionID).Scan(&userID, &expiresAt)
 
 	if err != nil {
@@ -35,39 +40,60 @@ func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
 	}
 
 	if time.Now().After(expiresAt) {
-		dbConn.Exec(`DELETE FROM sessions WHERE id = ?`, sessionID)
+		_, _ = dbConn.Exec(`
+			DELETE FROM sessions
+			WHERE id = $1
+		`, sessionID)
+
 		return nil, errors.New("session expired")
 	}
 
 	var username string
-	err = dbConn.QueryRow(`SELECT username FROM users WHERE id = ?`, userID).Scan(&username)
+	err = dbConn.QueryRow(`
+		SELECT username
+		FROM users
+		WHERE id = $1
+	`, userID).Scan(&username)
+
 	if err != nil {
 		return nil, err
 	}
 
-	return &User{ID: userID, Username: username}, nil
+	return &User{
+		ID:       userID,
+		Username: username,
+	}, nil
 }
 
-// CreateSession crée une nouvelle session pour un utilisateur
+// ==========================
+// CREATE SESSION
+// ==========================
 func CreateSession(userID int, dbConn *sql.DB) (string, error) {
-	sessionID := make([]byte, 32)
-	_, err := rand.Read(sessionID)
+	sessionIDBytes := make([]byte, 32)
+	_, err := rand.Read(sessionIDBytes)
 	if err != nil {
 		return "", err
 	}
-	sessionIDStr := hex.EncodeToString(sessionID)
 
+	sessionID := hex.EncodeToString(sessionIDBytes)
 	expiresAt := time.Now().Add(24 * time.Hour)
 
 	_, err = dbConn.Exec(`
-		INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)
-	`, sessionIDStr, userID, expiresAt)
+		INSERT INTO sessions (id, user_id, expires_at)
+		VALUES ($1, $2, $3)
+	`, sessionID, userID, expiresAt)
 
-	return sessionIDStr, err
+	return sessionID, err
 }
 
-// DestroySession supprime une session
+// ==========================
+// DESTROY SESSION
+// ==========================
 func DestroySession(sessionID string, dbConn *sql.DB) error {
-	_, err := dbConn.Exec(`DELETE FROM sessions WHERE id = ?`, sessionID)
+	_, err := dbConn.Exec(`
+		DELETE FROM sessions
+		WHERE id = $1
+	`, sessionID)
+
 	return err
 }

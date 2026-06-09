@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"html"
 	"net/http"
 	"strings"
 )
@@ -45,7 +44,7 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "category paramètre manquant",
+			Message: "category manquant",
 		})
 		return
 	}
@@ -55,7 +54,7 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "Catégorie non trouvée",
+			Message: "Catégorie introuvable",
 		})
 		return
 	}
@@ -76,7 +75,7 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// -------------------- POST (FIX IMPORTANT) --------------------
+// -------------------- POST --------------------
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 	user, err := GetSessionUser(r, dbConn)
 	if err != nil {
@@ -92,11 +91,10 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	contentType := r.Header.Get("Content-Type")
 
-	// ---------------- JSON ----------------
+	// JSON
 	if strings.Contains(contentType, "application/json") {
 		var body MessageBody
-		err := json.NewDecoder(r.Body).Decode(&body)
-		if err != nil {
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(APIResponse{
 				Success: false,
@@ -107,14 +105,8 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 		categoryName = body.Category
 		content = body.Content
-
-		// ---------------- FORM / FORM-DATA ----------------
 	} else {
-		err := r.ParseMultipartForm(10 << 20) // 10MB
-		if err != nil {
-			r.ParseForm() // fallback
-		}
-
+		_ = r.ParseForm()
 		categoryName = r.FormValue("category")
 		content = r.FormValue("content")
 	}
@@ -122,7 +114,6 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 	categoryName = strings.TrimSpace(categoryName)
 	content = strings.TrimSpace(content)
 
-	// ✅ FIX TON BUG ICI
 	if categoryName == "" || content == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(APIResponse{
@@ -141,12 +132,13 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "Catégorie non trouvée",
+			Message: "Catégorie introuvable",
 		})
 		return
 	}
 
-	msg, err := PostMessage(cat.ID, user.ID, html.EscapeString(content), dbConn)
+	// ❌ IMPORTANT: ne PAS escape HTML ici
+	msg, err := PostMessage(cat.ID, user.ID, content, dbConn)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(APIResponse{
