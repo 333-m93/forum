@@ -121,11 +121,11 @@ func GetMessages(categoryID int, dbConn *sql.DB) ([]Message, error) {
 			m.id,
 			m.category_id,
 			m.user_id,
-			u.username,
+			COALESCE(u.username, 'unknown') AS username,
 			m.content,
 			m.created_at
 		FROM messages m
-		JOIN users u ON m.user_id = u.id
+		LEFT JOIN users u ON u.id = m.user_id
 		WHERE m.category_id = $1
 		ORDER BY m.created_at ASC
 		LIMIT 50
@@ -139,21 +139,27 @@ func GetMessages(categoryID int, dbConn *sql.DB) ([]Message, error) {
 	var messages []Message
 
 	for rows.Next() {
-		var m Message
+		var msg Message
 
-		if err := rows.Scan(
-			&m.ID,
-			&m.CategoryID,
-			&m.UserID,
-			&m.Username,
-			&m.Content,
-			&m.CreatedAt,
-		); err != nil {
+		err := rows.Scan(
+			&msg.ID,
+			&msg.CategoryID,
+			&msg.UserID,
+			&msg.Username,
+			&msg.Content,
+			&msg.CreatedAt,
+		)
+
+		if err != nil {
 			return nil, err
 		}
 
-		messages = append(messages, m)
+		messages = append(messages, msg)
 	}
 
-	return messages, rows.Err()
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return messages, nil
 }

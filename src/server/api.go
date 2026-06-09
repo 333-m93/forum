@@ -6,43 +6,54 @@ import (
 	"strings"
 )
 
-// APIResponse structure standard
+// =====================
+// RESPONSE STRUCT
+// =====================
 type APIResponse struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
-// Body JSON fallback
+// =====================
+// REQUEST BODY (JSON)
+// =====================
 type MessageBody struct {
 	Category string `json:"category"`
 	Content  string `json:"content"`
 }
 
-// Handler principal
+// =====================
+// MAIN HANDLER
+// =====================
 func messagesAPIHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 
 	switch r.Method {
+
 	case http.MethodGet:
 		handleGetMessages(w, r)
+
 	case http.MethodPost:
 		handlePostMessage(w, r)
+
 	default:
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusMethodNotAllowed, APIResponse{
 			Success: false,
 			Message: "Méthode non autorisée",
 		})
 	}
 }
 
-// -------------------- GET --------------------
+// =====================
+// GET MESSAGES
+// =====================
 func handleGetMessages(w http.ResponseWriter, r *http.Request) {
+
 	categoryName := strings.TrimSpace(r.URL.Query().Get("category"))
+
 	if categoryName == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusBadRequest, APIResponse{
 			Success: false,
 			Message: "category manquant",
 		})
@@ -51,8 +62,7 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 
 	cat, err := GetCategoryByName(categoryName, dbConn)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusNotFound, APIResponse{
 			Success: false,
 			Message: "Catégorie introuvable",
 		})
@@ -61,26 +71,27 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 
 	messages, err := GetMessages(cat.ID, dbConn)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusInternalServerError, APIResponse{
 			Success: false,
 			Message: "Erreur récupération messages",
 		})
 		return
 	}
 
-	json.NewEncoder(w).Encode(APIResponse{
+	writeJSON(w, http.StatusOK, APIResponse{
 		Success: true,
 		Data:    messages,
 	})
 }
 
-// -------------------- POST --------------------
+// =====================
+// POST MESSAGE
+// =====================
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
+
 	user, err := GetSessionUser(r, dbConn)
 	if err != nil {
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusUnauthorized, APIResponse{
 			Success: false,
 			Message: "Non authentifié",
 		})
@@ -91,12 +102,15 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	contentType := r.Header.Get("Content-Type")
 
-	// JSON
+	// =====================
+	// JSON MODE
+	// =====================
 	if strings.Contains(contentType, "application/json") {
+
 		var body MessageBody
+
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(APIResponse{
+			writeJSON(w, http.StatusBadRequest, APIResponse{
 				Success: false,
 				Message: "JSON invalide",
 			})
@@ -105,8 +119,19 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 		categoryName = body.Category
 		content = body.Content
+
 	} else {
-		_ = r.ParseForm()
+		// =====================
+		// FORM / MULTIPART MODE (ton chat.js actuel)
+		// =====================
+		if err := r.ParseForm(); err != nil {
+			writeJSON(w, http.StatusBadRequest, APIResponse{
+				Success: false,
+				Message: "Formulaire invalide",
+			})
+			return
+		}
+
 		categoryName = r.FormValue("category")
 		content = r.FormValue("content")
 	}
@@ -114,9 +139,11 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 	categoryName = strings.TrimSpace(categoryName)
 	content = strings.TrimSpace(content)
 
+	// =====================
+	// VALIDATION
+	// =====================
 	if categoryName == "" || content == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusBadRequest, APIResponse{
 			Success: false,
 			Message: "Paramètres manquants",
 		})
@@ -129,28 +156,32 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	cat, err := GetCategoryByName(categoryName, dbConn)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusNotFound, APIResponse{
 			Success: false,
 			Message: "Catégorie introuvable",
 		})
 		return
 	}
 
-	// ❌ IMPORTANT: ne PAS escape HTML ici
 	msg, err := PostMessage(cat.ID, user.ID, content, dbConn)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusInternalServerError, APIResponse{
 			Success: false,
 			Message: "Erreur ajout message",
 		})
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(APIResponse{
+	writeJSON(w, http.StatusCreated, APIResponse{
 		Success: true,
 		Data:    msg,
 	})
+}
+
+// =====================
+// HELPERS
+// =====================
+func writeJSON(w http.ResponseWriter, status int, data APIResponse) {
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(data)
 }
