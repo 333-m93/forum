@@ -1,5 +1,17 @@
 package server
 
-import "html/template"
+import (
+	"html/template"
+	"log"
+)
 
-var authTemplates = template.Must(template.ParseGlob("templates/*.html"))
+var authTemplates *template.Template
+
+func init() {
+	var err error
+
+	authTemplates, err = template.ParseGlob("templates/*.html")
+	if err != nil {
+		log.Fatalf("❌ Erreur chargement templates: %v", err)
+	}
+}
