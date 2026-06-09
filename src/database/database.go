@@ -11,7 +11,12 @@ import (
 func Connect() (*sql.DB, error) {
 
 	dsn := os.Getenv("DATABASE_URL")
-	log.Println("DATABASE_URL =", dsn)
+
+	if dsn == "" {
+		log.Fatal("❌ DATABASE_URL manquant")
+	}
+
+	log.Println("🔌 Connecting DB...")
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
@@ -19,9 +24,10 @@ func Connect() (*sql.DB, error) {
 	}
 
 	if err := db.Ping(); err != nil {
-		db.Close()
 		return nil, err
 	}
+
+	log.Println("✅ DB connected")
 
 	return db, nil
 }
