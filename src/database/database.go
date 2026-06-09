@@ -9,12 +9,21 @@ import (
 )
 
 func Connect(cfg config.Config) (*sql.DB, error) {
-	dsn := fmt.Sprintf("postgresql://%s:%s@%s/%s?sslmode=disable", cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBName)
+
+	dsn := fmt.Sprintf(
+		"host=%s user=%s password=%s dbname=%s sslmode=require",
+		cfg.DBHost,
+		cfg.DBUser,
+		cfg.DBPass,
+		cfg.DBName,
+	)
+
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}
 
+	// test connexion réelle
 	if err := db.Ping(); err != nil {
 		db.Close()
 		return nil, err
