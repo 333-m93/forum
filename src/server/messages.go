@@ -5,7 +5,10 @@ import (
 	"time"
 )
 
-// Message représente un message du forum
+// =====================
+// STRUCTS
+// =====================
+
 type Message struct {
 	ID         int       `json:"id"`
 	CategoryID int       `json:"category_id"`
@@ -15,15 +18,18 @@ type Message struct {
 	CreatedAt  time.Time `json:"created_at"`
 }
 
-// Category représente une catégorie de chat
 type Category struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
-// GetCategories
+// =====================
+// CATEGORIES
+// =====================
+
 func GetCategories(dbConn *sql.DB) ([]Category, error) {
+
 	rows, err := dbConn.Query(`
 		SELECT id, name, description
 		FROM categories
@@ -35,98 +41,118 @@ func GetCategories(dbConn *sql.DB) ([]Category, error) {
 	defer rows.Close()
 
 	var categories []Category
+
 	for rows.Next() {
-		var cat Category
-		if err := rows.Scan(&cat.ID, &cat.Name, &cat.Description); err != nil {
+		var c Category
+		if err := rows.Scan(&c.ID, &c.Name, &c.Description); err != nil {
 			return nil, err
 		}
-		categories = append(categories, cat)
+		categories = append(categories, c)
 	}
 
 	return categories, rows.Err()
 }
 
-// GetCategoryByName (POSTGRES FIX)
+// =====================
+// CATEGORY BY NAME
+// =====================
+
 func GetCategoryByName(name string, dbConn *sql.DB) (*Category, error) {
-	var cat Category
+
+	var c Category
 
 	err := dbConn.QueryRow(`
 		SELECT id, name, description
 		FROM categories
 		WHERE name = $1
-	`, name).Scan(&cat.ID, &cat.Name, &cat.Description)
+	`, name).Scan(&c.ID, &c.Name, &c.Description)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &cat, nil
+	return &c, nil
 }
 
-// PostMessage (POSTGRES FIX)
+// =====================
+// POST MESSAGE (FIX POSTGRES)
+// =====================
+
 func PostMessage(categoryID int, userID int, content string, dbConn *sql.DB) (*Message, error) {
-	result, err := dbConn.Exec(`
+
+	var msg Message
+
+	// 🔥 INSERT + RETURNING (IMPORTANT POSTGRES)
+	err := dbConn.QueryRow(`
 		INSERT INTO messages (category_id, user_id, content)
 		VALUES ($1, $2, $3)
-	`, categoryID, userID, content)
+		RETURNING id, category_id, user_id, content, created_at
+	`, categoryID, userID, content).Scan(
+		&msg.ID,
+		&msg.CategoryID,
+		&msg.UserID,
+		&msg.Content,
+		&msg.CreatedAt,
+	)
+
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := result.LastInsertId()
-	if err != nil {
-		return nil, err
-	}
-
+	// 🔥 récupérer username
 	var username string
 	_ = dbConn.QueryRow(`
 		SELECT username FROM users WHERE id = $1
 	`, userID).Scan(&username)
 
-	return &Message{
-		ID:         int(id),
-		CategoryID: categoryID,
-		UserID:     userID,
-		Username:   username,
-		Content:    content,
-		CreatedAt:  time.Now(),
-	}, nil
+	msg.Username = username
+
+	return &msg, nil
 }
 
-// GetMessages (POSTGRES FIX)
+// =====================
+// GET MESSAGES
+// =====================
+
 func GetMessages(categoryID int, dbConn *sql.DB) ([]Message, error) {
+
 	rows, err := dbConn.Query(`
-		SELECT m.id, m.category_id, m.user_id, u.username, m.content, m.created_at
+		SELECT 
+			m.id,
+			m.category_id,
+			m.user_id,
+			u.username,
+			m.content,
+			m.created_at
 		FROM messages m
 		JOIN users u ON m.user_id = u.id
 		WHERE m.category_id = $1
-		ORDER BY m.created_at DESC
+		ORDER BY m.created_at ASC
 		LIMIT 50
 	`, categoryID)
+
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	var messages []Message
+
 	for rows.Next() {
-		var msg Message
+		var m Message
+
 		if err := rows.Scan(
-			&msg.ID,
-			&msg.CategoryID,
-			&msg.UserID,
-			&msg.Username,
-			&msg.Content,
-			&msg.CreatedAt,
+			&m.ID,
+			&m.CategoryID,
+			&m.UserID,
+			&m.Username,
+			&m.Content,
+			&m.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
-		messages = append(messages, msg)
-	}
 
-	// reverse order
-	for i, j := 0, len(messages)-1; i < j; i, j = i+1, j-1 {
-		messages[i], messages[j] = messages[j], messages[i]
+		messages = append(messages, m)
 	}
 
 	return messages, rows.Err()
