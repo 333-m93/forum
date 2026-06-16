@@ -94,13 +94,14 @@ class ForumChat {
 
     for (const g of groups) {
       const mine = g.user_id > 0 ? " reaction-mine" : "";
-      html += `<button class="reaction-btn${mine}" data-msg-id="${m.id}" data-emoji="${g.emoji}">
+      const names = (g.users || []).join(", ");
+      html += `<button class="reaction-btn${mine}" data-msg-id="${m.id}" data-emoji="${g.emoji}" title="${names}">
         <span class="reaction-emoji">${g.emoji}</span>
         <span class="reaction-count">${g.count}</span>
       </button>`;
     }
 
-    html += `<div class="emoji-picker emoji-picker-open" data-msg-id="${m.id}">`;
+    html += `<div class="emoji-picker" data-msg-id="${m.id}">`;
     for (const e of this.emojis) {
       html += `<button class="emoji-pick" data-emoji="${e}">${e}</button>`;
     }
