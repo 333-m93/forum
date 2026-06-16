@@ -20,8 +20,8 @@ type APIResponse struct {
 // BODY JSON
 // =====================
 type MessageBody struct {
-	CategoryID int    `json:"category_id"`
-	Content    string `json:"content"`
+	Category string `json:"category"`
+	Content  string `json:"content"`
 }
 
 // =====================
@@ -87,47 +87,64 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 // =====================
 // POST MESSAGE
 // =====================
+func writeJSON(w http.ResponseWriter, status int, data APIResponse) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(data)
+}
+
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	user, err := GetSessionUser(r, dbConn)
 	if err != nil {
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusUnauthorized, APIResponse{
 			Success: false,
-			Message: "non authentifié",
+			Message: "Non authentifié",
 		})
 		return
 	}
 
 	var body MessageBody
 
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		json.NewEncoder(w).Encode(APIResponse{
+	err = json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, APIResponse{
 			Success: false,
 			Message: "json invalide",
 		})
 		return
 	}
 
-	body.Content = strings.TrimSpace(body.Content)
+	categoryName := strings.TrimSpace(body.Category)
+	content := strings.TrimSpace(body.Content)
 
-	if body.CategoryID == 0 || body.Content == "" {
-		json.NewEncoder(w).Encode(APIResponse{
+	if categoryName == "" || content == "" {
+		writeJSON(w, http.StatusBadRequest, APIResponse{
 			Success: false,
 			Message: "paramètres manquants",
 		})
 		return
 	}
 
-	msg, err := PostMessage(body.CategoryID, user.ID, body.Content, dbConn)
+	cat, err := GetCategoryByName(categoryName, dbConn)
 	if err != nil {
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusNotFound, APIResponse{
 			Success: false,
-			Message: "erreur insertion",
+			Message: "catégorie introuvable",
 		})
 		return
 	}
 
-	json.NewEncoder(w).Encode(APIResponse{
+	msg, err := PostMessage(cat.ID, user.ID, content, dbConn)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, APIResponse{
+			Success: false,
+			Message: "erreur message",
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, APIResponse{
 		Success: true,
 		Data:    msg,
 	})

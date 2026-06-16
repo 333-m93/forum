@@ -21,7 +21,7 @@ class ForumChat {
 
       console.log("📂 Catégorie:", name);
 
-      this.loadChat(name);
+      this.openChat(name);
     });
 
     // SEND message
@@ -33,7 +33,7 @@ class ForumChat {
     });
   }
 
-  loadChat(categoryName) {
+  openChat(categoryName) {
     this.currentCategory = categoryName;
     this.messages = [];
 
@@ -41,17 +41,16 @@ class ForumChat {
 
     pane.innerHTML = `
       <div class="chat-header">
-        <h2 style="margin:0;">${categoryName}</h2>
+        <h2>${categoryName}</h2>
       </div>
 
-      <div id="chat-messages"
-           class="chat-messages"
-           style="height:400px;overflow-y:auto;margin:14px 0;"></div>
+      <div id="chat-messages" class="chat-messages"
+        style="height:400px;overflow-y:auto;margin:14px 0;"></div>
 
       <div class="chat-footer">
         <form class="chat-form">
           <input type="text" placeholder="Écrire un message..." required />
-          <button type="submit" class="btn primary">Envoyer</button>
+          <button type="submit">Envoyer</button>
         </form>
       </div>
     `;
@@ -74,6 +73,7 @@ class ForumChat {
           console.warn("API:", data.message);
           return;
         }
+
         this.renderMessages(data.data || []);
       })
       .catch(err => console.error("GET error:", err));
@@ -82,8 +82,6 @@ class ForumChat {
   renderMessages(messages) {
     const container = document.getElementById("chat-messages");
     if (!container) return;
-
-    if (JSON.stringify(this.messages) === JSON.stringify(messages)) return;
 
     this.messages = messages;
 
@@ -101,12 +99,12 @@ class ForumChat {
   }
 
   sendMessage(form) {
+    if (!this.currentCategory) return;
+
     const input = form.querySelector("input");
     const content = input.value.trim();
 
-    if (!content || !this.currentCategory) return;
-
-    console.log("📤 POST:", content);
+    if (!content) return;
 
     fetch("/api/messages", {
       method: "POST",
@@ -120,8 +118,6 @@ class ForumChat {
     })
       .then(r => r.json())
       .then(data => {
-        console.log("📨 response:", data);
-
         if (!data.success) {
           alert(data.message || "Erreur");
           return;
