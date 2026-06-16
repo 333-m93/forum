@@ -6,28 +6,37 @@
     <link rel="stylesheet" href="/static/style.css">
     <meta name="viewport" content="width=device-width,initial-scale=1">
 </head>
+
 <body>
     <header class="site-header">
         <div class="header-inner">
+
             <div class="logo">
                 <img class="logo-image" src="/static/logo.png" alt="Le Dojo">
                 <span class="logo-text">{{ .Name }}</span>
             </div>
+
             <nav class="top-nav">
                 <a href="/">Accueil</a>
                 <a href="/register">S'inscrire</a>
                 <a href="/login">Se connecter</a>
-                <a href="/logout" style="display:none;" id="logout-link">Déconnexion</a>
-                <button id="theme-toggle" class="btn ghost" type="button">Mode sombre</button>
+                <a href="/logout" id="logout-link" style="display:none;">Déconnexion</a>
+                <button id="theme-toggle" class="btn ghost" type="button">
+                    Mode sombre
+                </button>
             </nav>
+
         </div>
     </header>
 
     <main class="home-root">
+
+        <!-- HERO -->
         <section class="hero card">
             <div class="hero-content">
                 <span class="hero-label">Dojo</span>
                 <h1 class="site-title">{{ .Name }}</h1>
+
                 <div class="hero-cta">
                     <a class="btn primary" href="/register">Entrer au Dojo</a>
                     <a class="btn ghost" href="/login">Déjà membre</a>
@@ -35,31 +44,49 @@
             </div>
         </section>
 
+        <!-- CATEGORIES -->
         <section class="container card">
             <h2 class="section-title">Catégories populaires</h2>
+
             <div class="categories-grid">
                 {{ range .Categories }}
                 <article class="category-card">
-                    <h3 class="cat-name">{{ . }}</h3>
-                    <p class="cat-desc">Discussions et ressources sur {{ . }}.</p>
-                    <a class="cat-link" href="#" data-cat="{{ . }}">Ouvrir le chat →</a>
+
+                    <h3 class="cat-name">{{ .Name }}</h3>
+
+                    <p class="cat-desc">
+                        Discussions et ressources sur {{ .Name }}.
+                    </p>
+
+                    <!-- IMPORTANT: ID + NAME pour JS -->
+                    <a class="cat-link"
+                       href="#"
+                       data-cat-id="{{ .ID }}"
+                       data-cat-name="{{ .Name }}">
+                        Ouvrir le chat →
+                    </a>
+
                 </article>
                 {{ end }}
             </div>
         </section>
 
-        <!-- Floating right-side chat pane (outside centered content) -->
+        <!-- CHAT FLOATING PANEL -->
         <aside id="floating-chat" class="floating-chat" aria-hidden="true">
             <div class="chat-placeholder">
-                <h3>Sélectionnez un chat à gauche</h3>
-                <p>Le chat sélectionné s'ouvrira dans cette zone à droite.</p>
+                <h3>Sélectionnez un chat</h3>
+                <p>Choisis une catégorie pour ouvrir le chat.</p>
             </div>
         </aside>
+
     </main>
 
     <footer class="site-footer">
-        <div class="footer-inner">© {{ .Name }} • Le temple où chaque coup forge le caractère</div>
+        <div class="footer-inner">
+            © {{ .Name }} • Le dojo du code et du combat
+        </div>
     </footer>
+
     <script src="/static/theme.js"></script>
     <script src="/static/chat.js"></script>
 </body>

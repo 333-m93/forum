@@ -2,26 +2,31 @@ package server
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
 
+// =====================
 // RESPONSE
+// =====================
 type APIResponse struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
-// BODY
+// =====================
+// BODY JSON
+// =====================
 type MessageBody struct {
 	CategoryID int    `json:"category_id"`
 	Content    string `json:"content"`
 }
 
-// MAIN
+// =====================
+// MAIN HANDLER
+// =====================
 func messagesAPIHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -36,12 +41,14 @@ func messagesAPIHandler(w http.ResponseWriter, r *http.Request) {
 	default:
 		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "Method not allowed",
+			Message: "method not allowed",
 		})
 	}
 }
 
-// GET
+// =====================
+// GET MESSAGES
+// =====================
 func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 
 	idStr := r.URL.Query().Get("category_id")
@@ -77,7 +84,9 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// POST
+// =====================
+// POST MESSAGE
+// =====================
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	user, err := GetSessionUser(r, dbConn)
@@ -111,10 +120,9 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	msg, err := PostMessage(body.CategoryID, user.ID, body.Content, dbConn)
 	if err != nil {
-		log.Println(err)
 		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "erreur insertion message",
+			Message: "erreur insertion",
 		})
 		return
 	}

@@ -19,15 +19,14 @@ class ForumChat {
       const id = link.getAttribute("data-cat-id");
       const name = link.getAttribute("data-cat-name");
 
-      if (!id) {
-        console.error("Catégorie ID manquant");
-        return;
-      }
+      if (!id) return;
 
-      this.loadChat({
+      this.currentCategory = {
         id: parseInt(id),
         name: name
-      });
+      };
+
+      this.loadChat();
     });
 
     // SEND MESSAGE
@@ -38,24 +37,22 @@ class ForumChat {
     });
   }
 
-  loadChat(category) {
-    this.currentCategory = category;
-    this.messages = [];
-
+  loadChat() {
     const pane = document.getElementById("floating-chat");
+
+    if (!pane) return;
 
     pane.innerHTML = `
       <div class="chat-header">
-        <h2>${category.name}</h2>
+        <h2>${this.currentCategory.name}</h2>
       </div>
 
-      <div class="chat-messages" id="chat-messages"
-        style="height:400px;overflow-y:auto;margin:14px 0;">
-      </div>
+      <div id="chat-messages" class="chat-messages"
+        style="height:400px;overflow-y:auto;margin:14px 0;"></div>
 
       <div class="chat-footer">
         <form class="chat-form">
-          <input type="text" class="chat-input" placeholder="Écrire un message..." required />
+          <input type="text" placeholder="Écrire un message..." required />
           <button type="submit">Envoyer</button>
         </form>
       </div>
@@ -74,14 +71,16 @@ class ForumChat {
       .then(r => r.json())
       .then(data => {
         if (!data.success) return;
-        this.renderMessages(data.data || []);
+        this.render(data.data || []);
       })
       .catch(err => console.error(err));
   }
 
-  renderMessages(messages) {
+  render(messages) {
     const container = document.getElementById("chat-messages");
     if (!container) return;
+
+    this.messages = messages;
 
     container.innerHTML = messages.length
       ? messages.map(m => `
