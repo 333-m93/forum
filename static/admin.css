@@ -1,0 +1,138 @@
+.admin-page {
+    max-width: 1100px;
+    margin: 36px auto;
+    padding: 0 18px 24px;
+}
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 18px;
+    margin-bottom: 32px;
+}
+
+.stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--button-bg);
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.admin-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 24px;
+}
+
+.admin-section h2 {
+    margin: 0 0 16px;
+    color: var(--text);
+    font-size: 1.15rem;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.admin-table th {
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border);
+    color: var(--muted);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.admin-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+}
+
+.admin-table tbody tr:hover {
+    background: var(--button-ghost-bg);
+}
+
+.msg-content-cell {
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.badge-admin {
+    background: var(--button-bg);
+    color: var(--button-color);
+}
+
+.badge-banned {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.badge-active {
+    background: var(--button-ghost-bg);
+    color: var(--button-ghost-color);
+}
+
+.inline-form {
+    display: inline;
+}
+
+.btn-sm {
+    padding: 5px 12px;
+    border-radius: 10px;
+    border: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.btn-sm:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+}
+
+.btn-ban {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.btn-unban {
+    background: #27ae60;
+    color: #fff;
+}
+
+.btn-delete {
+    background: #e74c3c;
+    color: #fff;
+}

@@ -3,6 +3,8 @@ package database
 import (
 	"database/sql"
 	"log"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Migrate(db *sql.DB) error {
@@ -39,6 +41,8 @@ func Migrate(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_messages_category_time ON messages (category_id, created_at DESC)`,
 		`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT ''`,
 		`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT ''`,
+		`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE`,
+		`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE`,
 		`CREATE TABLE IF NOT EXISTS reactions (
 			id SERIAL PRIMARY KEY,
 			message_id INT NOT NULL,
@@ -74,6 +78,20 @@ func Migrate(db *sql.DB) error {
 		return err
 	}
 	log.Printf("Migrations done - %d categories in DB", count)
+
+	hash, err := bcrypt.GenerateFromPassword([]byte("admin"), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(`
+		INSERT INTO users (username, password_hash, is_admin)
+		VALUES ('Admin', $1, TRUE)
+		ON CONFLICT (username) DO NOTHING
+	`, string(hash))
+	if err != nil {
+		log.Printf("Admin user insert: %v", err)
+	}
 
 	return nil
 }

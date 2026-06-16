@@ -104,6 +104,14 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.IsBanned {
+		writeJSON(w, http.StatusForbidden, APIResponse{
+			Success: false,
+			Message: "Tu as été banni",
+		})
+		return
+	}
+
 	var body MessageBody
 
 	err = json.NewDecoder(r.Body).Decode(&body)

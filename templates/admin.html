@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Le Dojo</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/admin.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="logo">
+                <img class="logo-image" src="/static/logo.png" alt="Le Dojo">
+                <span class="logo-text">Admin</span>
+            </div>
+            <nav class="top-nav">
+                <a href="/">Accueil</a>
+                <a href="/profile">{{ .User.Username }}</a>
+                <a href="/logout">Déconnexion</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="admin-page">
+        <section class="admin-stats">
+            <div class="stat-card">
+                <span class="stat-number">{{ .Stats.UserCount }}</span>
+                <span class="stat-label">Utilisateurs</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ .Stats.MessageCount }}</span>
+                <span class="stat-label">Messages</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-number">{{ .Stats.CategoryCount }}</span>
+                <span class="stat-label">Catégories</span>
+            </div>
+        </section>
+
+        <section class="admin-section">
+            <h2>Utilisateurs</h2>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Pseudo</th>
+                        <th>Messages</th>
+                        <th>Statut</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ range .Users }}
+                    <tr>
+                        <td>{{ .ID }}</td>
+                        <td>{{ .Username }}</td>
+                        <td>{{ .MessageCount }}</td>
+                        <td>
+                            {{ if .IsAdmin }}<span class="badge badge-admin">Admin</span>
+                            {{ else if .IsBanned }}<span class="badge badge-banned">Banni</span>
+                            {{ else }}<span class="badge badge-active">Actif</span>{{ end }}
+                        </td>
+                        <td class="actions-cell">
+                            {{ if not .IsAdmin }}
+                                {{ if .IsBanned }}
+                                <form method="POST" action="/admin/users/unban" class="inline-form">
+                                    <input type="hidden" name="user_id" value="{{ .ID }}">
+                                    <button type="submit" class="btn-sm btn-unban">Débannir</button>
+                                </form>
+                                {{ else }}
+                                <form method="POST" action="/admin/users/ban" class="inline-form">
+                                    <input type="hidden" name="user_id" value="{{ .ID }}">
+                                    <button type="submit" class="btn-sm btn-ban">Bannir</button>
+                                </form>
+                                {{ end }}
+                            {{ end }}
+                        </td>
+                    </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        </section>
+
+        <section class="admin-section">
+            <h2>Messages</h2>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Auteur</th>
+                        <th>Catégorie</th>
+                        <th>Contenu</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{ range .Messages }}
+                    <tr>
+                        <td>{{ .ID }}</td>
+                        <td>{{ .Username }}</td>
+                        <td>{{ .CategoryName }}</td>
+                        <td class="msg-content-cell">{{ .Content }}</td>
+                        <td>{{ .CreatedAt.Format "02/01 15:04" }}</td>
+                        <td>
+                            <form method="POST" action="/admin/messages/delete" class="inline-form">
+                                <input type="hidden" name="message_id" value="{{ .ID }}">
+                                <button type="submit" class="btn-sm btn-delete">Supprimer</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {{ end }}
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>Le Dojo - Panel Admin</p>
+    </footer>
+
+    <script src="/static/theme.js"></script>
+</body>
+</html>

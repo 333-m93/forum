@@ -25,6 +25,9 @@
                     {{ end }}
                     <span>{{ .User.Username }}</span>
                 </a>
+                {{ if .User.IsAdmin }}
+                <a href="/admin">Admin</a>
+                {{ end }}
                 <a href="/logout" class="nav-logout">Déconnexion</a>
                 {{ end }}
                 <button id="theme-toggle" class="btn ghost">Mode sombre</button>

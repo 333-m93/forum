@@ -15,6 +15,8 @@ type User struct {
 	Username  string
 	AvatarURL string
 	Bio       string
+	IsAdmin   bool
+	IsBanned  bool
 }
 
 func (u *User) Initial() string {
@@ -53,12 +55,14 @@ func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
 	var username string
 	var avatarURL string
 	var bio string
+	var isAdmin bool
+	var isBanned bool
 
 	err = dbConn.QueryRow(`
-		SELECT username, COALESCE(avatar_url, ''), COALESCE(bio, '')
+		SELECT username, COALESCE(avatar_url, ''), COALESCE(bio, ''), COALESCE(is_admin, FALSE), COALESCE(is_banned, FALSE)
 		FROM users
 		WHERE id = $1
-	`, userID).Scan(&username, &avatarURL, &bio)
+	`, userID).Scan(&username, &avatarURL, &bio, &isAdmin, &isBanned)
 
 	if err != nil {
 		return nil, err
@@ -69,6 +73,8 @@ func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
 		Username:  username,
 		AvatarURL: avatarURL,
 		Bio:       bio,
+		IsAdmin:   isAdmin,
+		IsBanned:  isBanned,
 	}, nil
 }
 
