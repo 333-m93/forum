@@ -49,8 +49,8 @@ class ForumChat {
 
       <div class="chat-footer">
         <form class="chat-form">
-          <input type="text" placeholder="Écrire un message..." required />
-          <button type="submit">Envoyer</button>
+          <input type="text" class="chat-input" placeholder="Écrire un message..." required />
+          <button type="submit" class="chat-send btn primary">Envoyer</button>
         </form>
       </div>
     `;
