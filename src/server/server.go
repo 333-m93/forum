@@ -20,6 +20,10 @@ func StartServer() {
 		log.Fatalf("❌ DB error: %v", err)
 	}
 
+	if err := database.Migrate(dbConn); err != nil {
+		log.Fatalf("❌ Migration error: %v", err)
+	}
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
