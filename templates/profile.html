@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Profil - Le Dojo</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-inner">
+            <div class="logo">
+                <img class="logo-image" src="/static/logo.png" alt="Le Dojo">
+                <span class="logo-text">Le Dojo</span>
+            </div>
+            <nav class="top-nav">
+                <a href="/">Accueil</a>
+                <a href="/profile" class="nav-user">
+                    {{ if .User.AvatarURL }}
+                    <img src="{{ .User.AvatarURL }}" class="nav-avatar" alt="">
+                    {{ else }}
+                    <span class="nav-avatar-initial">{{ .User.Initial }}</span>
+                    {{ end }}
+                    <span>{{ .User.Username }}</span>
+                </a>
+                <a href="/logout" class="nav-logout">Déconnexion</a>
+                <button id="theme-toggle" class="btn ghost" type="button">Mode sombre</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page-container">
+        <section class="card profile-card">
+
+            <div class="profile-header">
+                <div class="profile-avatar-wrap" id="avatar-wrap">
+                    {{ if .User.AvatarURL }}
+                    <img src="{{ .User.AvatarURL }}" class="profile-avatar" alt="">
+                    {{ else }}
+                    <div class="profile-initials">{{ .User.Initial }}</div>
+                    {{ end }}
+                    <div class="profile-avatar-overlay">Changer</div>
+                </div>
+                <h1>{{ .User.Username }}</h1>
+                {{ if .User.Bio }}<p class="profile-bio">{{ .User.Bio }}</p>{{ end }}
+            </div>
+
+            <form id="avatar-form" method="POST" action="/api/profile/avatar" enctype="multipart/form-data" style="display:none;">
+                <input type="file" name="avatar" id="avatar-input" accept="image/*">
+            </form>
+
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <span class="stat-value">{{ .MessageCount }}</span>
+                    <span class="stat-label">Messages</span>
+                </div>
+                <div class="profile-stat">
+                    <span class="stat-value">{{ .JoinedAt }}</span>
+                    <span class="stat-label">Membre depuis</span>
+                </div>
+            </div>
+
+            {{ if .Success }}<div class="alert alert-success">{{ .Success }}</div>{{ end }}
+            {{ if .Error }}<div class="alert alert-error">{{ .Error }}</div>{{ end }}
+
+            <form method="POST" action="/profile" class="profile-section">
+                <h2>Modifier le profil</h2>
+                <label>Nom d'utilisateur</label>
+                <input type="text" name="username" value="{{ .User.Username }}" required>
+                <label>Bio</label>
+                <textarea name="bio" class="profile-textarea" rows="3" placeholder="Parle-nous de toi...">{{ .User.Bio }}</textarea>
+                <button type="submit" class="btn primary profile-btn">Sauvegarder</button>
+            </form>
+
+            <form method="POST" action="/api/profile/password" class="profile-section">
+                <h2>Changer le mot de passe</h2>
+                <label>Mot de passe actuel</label>
+                <input type="password" name="current_password" required>
+                <label>Nouveau mot de passe</label>
+                <input type="password" name="new_password" required>
+                <button type="submit" class="btn primary profile-btn">Changer le mot de passe</button>
+            </form>
+
+            {{ if .RecentMessages }}
+            <div class="profile-section">
+                <h2>Activité récente</h2>
+                <div class="profile-activity">
+                    {{ range .RecentMessages }}
+                    <div class="activity-item">
+                        <p class="activity-content">{{ .Content }}</p>
+                        <span class="activity-meta">{{ .CategoryName }} — {{ .CreatedAt.Format "02/01 15:04" }}</span>
+                    </div>
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+
+            <div class="profile-section profile-danger-zone">
+                <h2>Zone dangereuse</h2>
+                <p>La suppression de ton compte est irréversible. Tous tes messages seront perdus.</p>
+                <button type="button" id="delete-account-btn" class="btn danger-btn">Supprimer mon compte</button>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <p>© Le Dojo</p>
+    </footer>
+
+    <script src="/static/theme.js"></script>
+    <script src="/static/profile.js"></script>
+</body>
+</html>

@@ -6,9 +6,12 @@ import (
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
+	user, _ := GetSessionUser(r, dbConn)
+
 	data := struct {
 		Name       string
 		Categories []string
+		User       *User
 	}{
 		Name: "Le Dojo",
 		Categories: []string{
@@ -20,6 +23,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 			"Grappling",
 			"Autres sports de combat",
 		},
+		User: user,
 	}
 
 	err := authTemplates.ExecuteTemplate(w, "index.html", data)

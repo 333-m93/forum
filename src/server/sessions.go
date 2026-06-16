@@ -6,12 +6,22 @@ import (
 	"encoding/hex"
 	"errors"
 	"net/http"
+	"strings"
 	"time"
 )
 
 type User struct {
-	ID       int
-	Username string
+	ID        int
+	Username  string
+	AvatarURL string
+	Bio       string
+}
+
+func (u *User) Initial() string {
+	if len(u.Username) == 0 {
+		return "?"
+	}
+	return strings.ToUpper(string([]rune(u.Username)[0]))
 }
 
 func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
@@ -41,17 +51,25 @@ func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
 	}
 
 	var username string
+	var avatarURL string
+	var bio string
+
 	err = dbConn.QueryRow(`
-		SELECT username
+		SELECT username, COALESCE(avatar_url, ''), COALESCE(bio, '')
 		FROM users
 		WHERE id = $1
-	`, userID).Scan(&username)
+	`, userID).Scan(&username, &avatarURL, &bio)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &User{ID: userID, Username: username}, nil
+	return &User{
+		ID:        userID,
+		Username:  username,
+		AvatarURL: avatarURL,
+		Bio:       bio,
+	}, nil
 }
 
 func CreateSession(userID int, dbConn *sql.DB) (string, error) {

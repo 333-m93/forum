@@ -39,6 +39,10 @@ func StartServer() {
 	mux.HandleFunc("/register", registerHandler)
 	mux.HandleFunc("/login", loginHandler)
 	mux.HandleFunc("/logout", logoutHandler)
+	mux.HandleFunc("/profile", profileHandler)
+	mux.HandleFunc("/api/profile/avatar", profileAvatarHandler)
+	mux.HandleFunc("/api/profile/password", profilePasswordHandler)
+	mux.HandleFunc("/api/profile/delete", profileDeleteHandler)
 
 	mux.Handle("/static/",
 		http.StripPrefix("/static/", http.FileServer(http.Dir("static"))),

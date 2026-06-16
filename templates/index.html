@@ -16,9 +16,20 @@
 
             <nav class="top-nav">
                 <a href="/">Accueil</a>
+                {{ if .User }}
+                <a href="/profile" class="nav-user">
+                    {{ if .User.AvatarURL }}
+                    <img src="{{ .User.AvatarURL }}" class="nav-avatar" alt="">
+                    {{ else }}
+                    <span class="nav-avatar-initial">{{ .User.Initial }}</span>
+                    {{ end }}
+                    <span>{{ .User.Username }}</span>
+                </a>
+                <a href="/logout" class="nav-logout">Déconnexion</a>
+                {{ else }}
                 <a href="/register">S'inscrire</a>
                 <a href="/login">Se connecter</a>
-                <a href="/logout" id="logout-link" style="display:none;">Déconnexion</a>
+                {{ end }}
                 <button id="theme-toggle" class="btn ghost">Mode sombre</button>
             </nav>
         </div>
@@ -28,10 +39,12 @@
 
         <section class="hero card">
             <h1>{{ .Name }}</h1>
+            {{ if not .User }}
             <div class="hero-cta">
                 <a href="/register" class="btn primary">Entrer dans Le Dojo</a>
                 <a href="/login" class="btn ghost">Deja Membre</a>
             </div>
+            {{ end }}
         </section>
 
         <section class="container card">
