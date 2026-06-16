@@ -39,6 +39,16 @@ func Migrate(db *sql.DB) error {
 		`CREATE INDEX IF NOT EXISTS idx_messages_category_time ON messages (category_id, created_at DESC)`,
 		`ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT ''`,
 		`ALTER TABLE users ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT ''`,
+		`CREATE TABLE IF NOT EXISTS reactions (
+			id SERIAL PRIMARY KEY,
+			message_id INT NOT NULL,
+			user_id INT NOT NULL,
+			emoji TEXT NOT NULL,
+			created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+			FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,
+			FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+			UNIQUE(message_id, user_id, emoji)
+		)`,
 		`INSERT INTO categories (name, description) VALUES
 			('Chat général', 'Discussions générales sur tous sujets'),
 			('MMA', 'Discussions et ressources sur MMA'),

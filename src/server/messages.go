@@ -10,6 +10,7 @@ type Message struct {
 	CategoryID int       `json:"category_id"`
 	UserID     int       `json:"user_id"`
 	Username   string    `json:"username"`
+	AvatarURL  string    `json:"avatar_url"`
 	Content    string    `json:"content"`
 	CreatedAt  time.Time `json:"created_at"`
 }

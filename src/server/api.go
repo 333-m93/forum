@@ -62,9 +62,35 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID := 0
+	if u, err := GetSessionUser(r, dbConn); err == nil {
+		userID = u.ID
+	}
+
+	type msgWithReactions struct {
+		Message
+		Reactions []ReactionGroup `json:"reactions"`
+	}
+
+	var result []msgWithReactions
+	for _, m := range messages {
+		groups, _ := GetReactions(m.ID, userID)
+		if groups == nil {
+			groups = []ReactionGroup{}
+		}
+		result = append(result, msgWithReactions{
+			Message:   m,
+			Reactions: groups,
+		})
+	}
+
+	if result == nil {
+		result = []msgWithReactions{}
+	}
+
 	writeJSON(w, http.StatusOK, APIResponse{
 		Success: true,
-		Data:    messages,
+		Data:    result,
 	})
 }
 

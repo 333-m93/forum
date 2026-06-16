@@ -85,6 +85,20 @@ h1 {
     text-shadow: 0 1px 18px rgba(255, 163, 96, 0.24);
 }
 
+h2 {
+    color: var(--muted);
+    font-size: 1.15rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 20px;
+}
+
+h3 {
+    color: var(--text);
+    font-size: 1.05rem;
+    margin: 0 0 6px;
+}
+
 .btn {
     padding: 14px 20px;
     border-radius: 14px;
@@ -92,6 +106,7 @@ h1 {
     display: inline-block;
     transition: background-color 0.2s ease, color 0.2s ease, transform 0.18s ease;
     font-weight: 700;
+    font-size: 0.95rem;
 }
 
 .btn:hover {

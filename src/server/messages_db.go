@@ -24,11 +24,13 @@ func PostMessage(categoryID int, userID int, content string, dbConn *sql.DB) (*M
 	}
 
 	var username string
+	var avatarURL string
 	_ = dbConn.QueryRow(`
-		SELECT username FROM users WHERE id = $1
-	`, userID).Scan(&username)
+		SELECT username, COALESCE(avatar_url, '') FROM users WHERE id = $1
+	`, userID).Scan(&username, &avatarURL)
 
 	msg.Username = username
+	msg.AvatarURL = avatarURL
 
 	return &msg, nil
 }
@@ -40,6 +42,7 @@ func GetMessages(categoryID int, dbConn *sql.DB) ([]Message, error) {
 			m.category_id,
 			m.user_id,
 			COALESCE(u.username, 'unknown') AS username,
+			COALESCE(u.avatar_url, '') AS avatar_url,
 			m.content,
 			m.created_at
 		FROM messages m
@@ -64,6 +67,7 @@ func GetMessages(categoryID int, dbConn *sql.DB) ([]Message, error) {
 			&msg.CategoryID,
 			&msg.UserID,
 			&msg.Username,
+			&msg.AvatarURL,
 			&msg.Content,
 			&msg.CreatedAt,
 		)
