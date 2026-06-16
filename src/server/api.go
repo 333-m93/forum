@@ -4,31 +4,26 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
-// =====================
-// RESPONSE STRUCT
-// =====================
+// RESPONSE
 type APIResponse struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
-// =====================
-// REQUEST BODY (JSON)
-// =====================
+// BODY
 type MessageBody struct {
-	Category string `json:"category"`
-	Content  string `json:"content"`
+	CategoryID int    `json:"category_id"`
+	Content    string `json:"content"`
 }
 
-// =====================
-// MAIN HANDLER
-// =====================
+// MAIN
 func messagesAPIHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Content-Type", "application/json")
 
 	switch r.Method {
 
@@ -39,152 +34,93 @@ func messagesAPIHandler(w http.ResponseWriter, r *http.Request) {
 		handlePostMessage(w, r)
 
 	default:
-		writeJSON(w, http.StatusMethodNotAllowed, APIResponse{
+		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "Méthode non autorisée",
+			Message: "Method not allowed",
 		})
 	}
 }
 
-// =====================
-// GET MESSAGES
-// =====================
+// GET
 func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 
-	categoryName := strings.TrimSpace(r.URL.Query().Get("category"))
-
-	if categoryName == "" {
-		writeJSON(w, http.StatusBadRequest, APIResponse{
+	idStr := r.URL.Query().Get("category_id")
+	if idStr == "" {
+		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "category manquant",
+			Message: "category_id manquant",
 		})
 		return
 	}
 
-	cat, err := GetCategoryByName(categoryName, dbConn)
+	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		log.Printf("⚠️ Category not found: %q — DB error: %v", categoryName, err)
-		writeJSON(w, http.StatusNotFound, APIResponse{
+		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "Catégorie introuvable",
+			Message: "category_id invalide",
 		})
 		return
 	}
 
-	messages, err := GetMessages(cat.ID, dbConn)
+	messages, err := GetMessages(id, dbConn)
 	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, APIResponse{
+		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "Erreur récupération messages",
+			Message: "erreur messages",
 		})
 		return
 	}
 
-	writeJSON(w, http.StatusOK, APIResponse{
+	json.NewEncoder(w).Encode(APIResponse{
 		Success: true,
 		Data:    messages,
 	})
 }
 
-// =====================
-// POST MESSAGE
-// =====================
+// POST
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	user, err := GetSessionUser(r, dbConn)
 	if err != nil {
-		writeJSON(w, http.StatusUnauthorized, APIResponse{
+		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "Non authentifié",
+			Message: "non authentifié",
 		})
 		return
 	}
 
-	var categoryName, content string
+	var body MessageBody
 
-	contentType := r.Header.Get("Content-Type")
-
-	// =====================
-	// JSON MODE
-	// =====================
-	if strings.Contains(contentType, "application/json") {
-
-		var body MessageBody
-
-		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-			writeJSON(w, http.StatusBadRequest, APIResponse{
-				Success: false,
-				Message: "JSON invalide",
-			})
-			return
-		}
-
-		categoryName = body.Category
-		content = body.Content
-
-	} else {
-		// =====================
-		// FORM / MULTIPART MODE (ton chat.js actuel)
-		// =====================
-		if err := r.ParseForm(); err != nil {
-			writeJSON(w, http.StatusBadRequest, APIResponse{
-				Success: false,
-				Message: "Formulaire invalide",
-			})
-			return
-		}
-
-		categoryName = r.FormValue("category")
-		content = r.FormValue("content")
-	}
-
-	categoryName = strings.TrimSpace(categoryName)
-	content = strings.TrimSpace(content)
-
-	// =====================
-	// VALIDATION
-	// =====================
-	if categoryName == "" || content == "" {
-		writeJSON(w, http.StatusBadRequest, APIResponse{
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "Paramètres manquants",
+			Message: "json invalide",
 		})
 		return
 	}
 
-	if len(content) > 5000 {
-		content = content[:5000]
+	body.Content = strings.TrimSpace(body.Content)
+
+	if body.CategoryID == 0 || body.Content == "" {
+		json.NewEncoder(w).Encode(APIResponse{
+			Success: false,
+			Message: "paramètres manquants",
+		})
+		return
 	}
 
-	cat, err := GetCategoryByName(categoryName, dbConn)
+	msg, err := PostMessage(body.CategoryID, user.ID, body.Content, dbConn)
 	if err != nil {
-		log.Printf("⚠️ Category not found: %q — DB error: %v", categoryName, err)
-		writeJSON(w, http.StatusNotFound, APIResponse{
+		log.Println(err)
+		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
-			Message: "Catégorie introuvable",
+			Message: "erreur insertion message",
 		})
 		return
 	}
 
-	msg, err := PostMessage(cat.ID, user.ID, content, dbConn)
-	if err != nil {
-		writeJSON(w, http.StatusInternalServerError, APIResponse{
-			Success: false,
-			Message: "Erreur ajout message",
-		})
-		return
-	}
-
-	writeJSON(w, http.StatusCreated, APIResponse{
+	json.NewEncoder(w).Encode(APIResponse{
 		Success: true,
 		Data:    msg,
 	})
-}
-
-// =====================
-// HELPERS
-// =====================
-func writeJSON(w http.ResponseWriter, status int, data APIResponse) {
-	w.WriteHeader(status)
-	json.NewEncoder(w).Encode(data)
 }
