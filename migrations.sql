@@ -1,6 +1,4 @@
--- =========================
--- USERS
--- =========================
+
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   username VARCHAR(255) UNIQUE NOT NULL,
@@ -8,9 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- =========================
--- SESSIONS
--- =========================
+
 CREATE TABLE IF NOT EXISTS sessions (
   id TEXT PRIMARY KEY,
   user_id INT NOT NULL,
@@ -21,9 +17,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions (expires_at);
 
--- =========================
--- CATEGORIES
--- =========================
+
 CREATE TABLE IF NOT EXISTS categories (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) UNIQUE NOT NULL,
@@ -31,9 +25,7 @@ CREATE TABLE IF NOT EXISTS categories (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- =========================
--- MESSAGES
--- =========================
+
 CREATE TABLE IF NOT EXISTS messages (
   id SERIAL PRIMARY KEY,
   category_id INT NOT NULL,
@@ -47,9 +39,7 @@ CREATE TABLE IF NOT EXISTS messages (
 CREATE INDEX IF NOT EXISTS idx_messages_category_time
 ON messages (category_id, created_at DESC);
 
--- =========================
--- DEFAULT CATEGORIES
--- =========================
+
 INSERT INTO categories (name, description)
 VALUES
 ('Chat général', 'Discussions générales sur tous sujets'),

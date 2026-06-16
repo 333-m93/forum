@@ -8,7 +8,7 @@ services:
       - key: PORT
         value: "8080"
 
-      # PostgreSQL Render (IMPORTANT)
+      
       - key: DB_HOST
         fromDatabase:
           name: forum-db
