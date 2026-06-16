@@ -54,7 +54,7 @@ func GetCategories(dbConn *sql.DB) ([]Category, error) {
 }
 
 // =====================
-// CATEGORY BY NAME
+// CATEGORY BY NAME (auto-create if missing)
 // =====================
 
 func GetCategoryByName(name string, dbConn *sql.DB) (*Category, error) {
@@ -67,6 +67,26 @@ func GetCategoryByName(name string, dbConn *sql.DB) (*Category, error) {
 		WHERE LOWER(TRIM(name)) = LOWER(TRIM($1))
 		LIMIT 1
 	`, name).Scan(
+		&c.ID,
+		&c.Name,
+		&c.Description,
+	)
+
+	if err == nil {
+		return &c, nil
+	}
+
+	if err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	// Category not found — auto-create it
+	err = dbConn.QueryRow(`
+		INSERT INTO categories (name, description)
+		VALUES ($1, $2)
+		ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name
+		RETURNING id, name, description
+	`, name, "Catégorie "+name).Scan(
 		&c.ID,
 		&c.Name,
 		&c.Description,
