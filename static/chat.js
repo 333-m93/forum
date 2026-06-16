@@ -9,54 +9,54 @@ class ForumChat {
   init() {
     console.log("Chat.js chargé");
 
-    // CLICK CATEGORY
+    // CLICK catégorie
     document.addEventListener("click", (e) => {
-      const link = e.target.closest("a[data-cat-id]");
+      const link = e.target.closest(".cat-link");
       if (!link) return;
 
       e.preventDefault();
 
-      const id = link.getAttribute("data-cat-id");
-      const name = link.getAttribute("data-cat-name");
+      const name = link.dataset.catName;
+      if (!name) return;
 
-      if (!id) return;
+      console.log("📂 Catégorie:", name);
 
-      this.currentCategory = {
-        id: parseInt(id),
-        name: name
-      };
-
-      this.loadChat();
+      this.loadChat(name);
     });
 
-    // SEND MESSAGE
+    // SEND message
     document.addEventListener("submit", (e) => {
       if (!e.target.classList.contains("chat-form")) return;
+
       e.preventDefault();
       this.sendMessage(e.target);
     });
   }
 
-  loadChat() {
-    const pane = document.getElementById("floating-chat");
+  loadChat(categoryName) {
+    this.currentCategory = categoryName;
+    this.messages = [];
 
-    if (!pane) return;
+    const pane = document.getElementById("floating-chat");
 
     pane.innerHTML = `
       <div class="chat-header">
-        <h2>${this.currentCategory.name}</h2>
+        <h2 style="margin:0;">${categoryName}</h2>
       </div>
 
-      <div id="chat-messages" class="chat-messages"
-        style="height:400px;overflow-y:auto;margin:14px 0;"></div>
+      <div id="chat-messages"
+           class="chat-messages"
+           style="height:400px;overflow-y:auto;margin:14px 0;"></div>
 
       <div class="chat-footer">
         <form class="chat-form">
           <input type="text" placeholder="Écrire un message..." required />
-          <button type="submit">Envoyer</button>
+          <button type="submit" class="btn primary">Envoyer</button>
         </form>
       </div>
     `;
+
+    pane.setAttribute("aria-hidden", "false");
 
     this.fetchMessages();
 
@@ -67,29 +67,34 @@ class ForumChat {
   fetchMessages() {
     if (!this.currentCategory) return;
 
-    fetch(`/api/messages?category_id=${this.currentCategory.id}`)
+    fetch(`/api/messages?category=${encodeURIComponent(this.currentCategory)}`)
       .then(r => r.json())
       .then(data => {
-        if (!data.success) return;
-        this.render(data.data || []);
+        if (!data.success) {
+          console.warn("API:", data.message);
+          return;
+        }
+        this.renderMessages(data.data || []);
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error("GET error:", err));
   }
 
-  render(messages) {
+  renderMessages(messages) {
     const container = document.getElementById("chat-messages");
     if (!container) return;
+
+    if (JSON.stringify(this.messages) === JSON.stringify(messages)) return;
 
     this.messages = messages;
 
     container.innerHTML = messages.length
       ? messages.map(m => `
-        <div class="chat-message">
-          <strong>${m.username}</strong>
-          <p>${m.content}</p>
-          <small>${new Date(m.created_at).toLocaleTimeString()}</small>
-        </div>
-      `).join("")
+          <div class="chat-message">
+            <strong>${m.username}</strong>
+            <p>${m.content}</p>
+            <small>${new Date(m.created_at).toLocaleTimeString()}</small>
+          </div>
+        `).join("")
       : "<p>Aucun message</p>";
 
     container.scrollTop = container.scrollHeight;
@@ -101,27 +106,31 @@ class ForumChat {
 
     if (!content || !this.currentCategory) return;
 
+    console.log("📤 POST:", content);
+
     fetch("/api/messages", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        category_id: this.currentCategory.id,
+        category: this.currentCategory,
         content: content
       })
     })
       .then(r => r.json())
       .then(data => {
+        console.log("📨 response:", data);
+
         if (!data.success) {
-          alert(data.message);
+          alert(data.message || "Erreur");
           return;
         }
 
         input.value = "";
         this.fetchMessages();
       })
-      .catch(err => console.error(err));
+      .catch(err => console.error("POST error:", err));
   }
 }
 

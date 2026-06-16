@@ -38,17 +38,26 @@
         <section class="container card">
             <h2 class="section-title">Catégories populaires</h2>
             <div class="categories-grid">
+
                 {{ range .Categories }}
                 <article class="category-card">
+
                     <h3 class="cat-name">{{ . }}</h3>
                     <p class="cat-desc">Discussions et ressources sur {{ . }}.</p>
-                    <a class="cat-link" href="#" data-cat="{{ . }}">Ouvrir le chat →</a>
+
+                    <!-- ✅ FIX IMPORTANT ICI -->
+                    <a class="cat-link"
+                       href="#"
+                       data-cat-name="{{ . }}">
+                       Ouvrir le chat →
+                    </a>
+
                 </article>
                 {{ end }}
+
             </div>
         </section>
 
-        <!-- Floating right-side chat pane (outside centered content) -->
         <aside id="floating-chat" class="floating-chat" aria-hidden="true">
             <div class="chat-placeholder">
                 <h3>Sélectionnez un chat à gauche</h3>
@@ -60,6 +69,7 @@
     <footer class="site-footer">
         <div class="footer-inner">© {{ .Name }} • Le temple où chaque coup forge le caractère</div>
     </footer>
+
     <script src="/static/theme.js"></script>
     <script src="/static/chat.js"></script>
 </body>
