@@ -81,12 +81,15 @@ class ForumChat {
     if (!this.currentCategory) return;
 
     fetch(`/api/messages?category=${encodeURIComponent(this.currentCategory)}`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) return null;
+        return r.json();
+      })
       .then(data => {
-        if (!data.success) return;
+        if (!data || !data.success) return;
         this.renderMessages(data.data || []);
       })
-      .catch(err => console.error("GET error:", err));
+      .catch(() => {});
   }
 
   avatarHTML(m) {
@@ -162,13 +165,13 @@ class ForumChat {
       .then(r => r.json())
       .then(data => {
         if (!data.success) {
-          alert(data.message || "Erreur");
+          if (data.message) alert(data.message);
           return;
         }
         input.value = "";
         this.fetchMessages();
       })
-      .catch(err => console.error("POST error:", err));
+      .catch(() => {});
   }
 
   toggleReaction(btn) {
@@ -182,7 +185,7 @@ class ForumChat {
       })
         .then(r => r.json())
         .then(() => this.fetchMessages())
-        .catch(err => console.error("DELETE reaction error:", err));
+        .catch(() => {});
     } else {
       this.sendReaction(msgId, emoji);
     }
@@ -196,7 +199,7 @@ class ForumChat {
     })
       .then(r => r.json())
       .then(() => this.fetchMessages())
-      .catch(err => console.error("POST reaction error:", err));
+      .catch(() => {});
   }
 }
 
