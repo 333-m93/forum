@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
@@ -51,34 +50,35 @@ func messagesAPIHandler(w http.ResponseWriter, r *http.Request) {
 // =====================
 func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 
-	idStr := r.URL.Query().Get("category_id")
-	if idStr == "" {
-		json.NewEncoder(w).Encode(APIResponse{
+	categoryName := strings.TrimSpace(r.URL.Query().Get("category"))
+
+	if categoryName == "" {
+		writeJSON(w, http.StatusBadRequest, APIResponse{
 			Success: false,
-			Message: "category_id manquant",
+			Message: "category manquant",
 		})
 		return
 	}
 
-	id, err := strconv.Atoi(idStr)
+	cat, err := GetCategoryByName(categoryName, dbConn)
 	if err != nil {
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusNotFound, APIResponse{
 			Success: false,
-			Message: "category_id invalide",
+			Message: "catégorie introuvable",
 		})
 		return
 	}
 
-	messages, err := GetMessages(id, dbConn)
+	messages, err := GetMessages(cat.ID, dbConn)
 	if err != nil {
-		json.NewEncoder(w).Encode(APIResponse{
+		writeJSON(w, http.StatusInternalServerError, APIResponse{
 			Success: false,
 			Message: "erreur messages",
 		})
 		return
 	}
 
-	json.NewEncoder(w).Encode(APIResponse{
+	writeJSON(w, http.StatusOK, APIResponse{
 		Success: true,
 		Data:    messages,
 	})
