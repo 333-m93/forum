@@ -134,17 +134,39 @@
     color: var(--muted);
 }
 
+.emoji-toggle {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 1px dashed var(--border);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s ease;
+}
+
+.emoji-toggle:hover {
+    background: var(--button-ghost-bg);
+}
+
 .emoji-picker {
     display: none;
+    position: absolute;
     background: var(--surface-strong);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 4px 6px;
-    gap: 2px;
+    padding: 6px 8px;
+    box-shadow: var(--shadow);
+    gap: 4px;
     flex-wrap: wrap;
+    z-index: 20;
 }
 
-.chat-message:hover .emoji-picker {
+.emoji-picker-open {
     display: flex;
 }
 
