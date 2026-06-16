@@ -19,8 +19,8 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 COPY --from=builder /app/forum ./forum
-COPY static/ ./static/
-COPY templates/ ./templates/
+COPY --from=builder /app/static/ ./static/
+COPY --from=builder /app/templates/ ./templates/
 
 EXPOSE 8080
 
