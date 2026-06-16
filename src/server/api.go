@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -62,6 +63,7 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 
 	cat, err := GetCategoryByName(categoryName, dbConn)
 	if err != nil {
+		log.Printf("⚠️ Category not found: %q — DB error: %v", categoryName, err)
 		writeJSON(w, http.StatusNotFound, APIResponse{
 			Success: false,
 			Message: "Catégorie introuvable",
@@ -156,6 +158,7 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 
 	cat, err := GetCategoryByName(categoryName, dbConn)
 	if err != nil {
+		log.Printf("⚠️ Category not found: %q — DB error: %v", categoryName, err)
 		writeJSON(w, http.StatusNotFound, APIResponse{
 			Success: false,
 			Message: "Catégorie introuvable",
