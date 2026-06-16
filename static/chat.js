@@ -34,7 +34,8 @@ class ForumChat {
       const toggle = e.target.closest(".emoji-toggle");
       if (!toggle) return;
       e.preventDefault();
-      const picker = toggle.nextElementSibling;
+      const msg = toggle.closest(".chat-message");
+      const picker = msg ? msg.querySelector(".emoji-picker") : null;
       if (picker) picker.classList.toggle("emoji-picker-open");
     });
 
@@ -114,11 +115,13 @@ class ForumChat {
     }
 
     html += `<button class="emoji-toggle" data-msg-id="${m.id}">+</button>`;
+    html += "</div>";
+
     html += `<div class="emoji-picker" data-msg-id="${m.id}">`;
     for (const e of this.emojis) {
       html += `<button class="emoji-pick" data-emoji="${e}">${e}</button>`;
     }
-    html += "</div></div>";
+    html += "</div>";
 
     return html;
   }
@@ -192,13 +195,41 @@ class ForumChat {
   }
 
   sendReaction(messageID, emoji) {
+    const row = document.querySelector(`.emoji-picker[data-msg-id="${messageID}"]`)?.previousElementSibling;
+    if (row) {
+      const existing = row.querySelector(`.reaction-btn[data-emoji="${emoji}"]`);
+      if (existing) {
+        existing.classList.add("reaction-mine");
+        const cnt = existing.querySelector(".reaction-count");
+        cnt.textContent = parseInt(cnt.textContent) + 1;
+      } else {
+        const btn = document.createElement("button");
+        btn.className = "reaction-btn reaction-mine";
+        btn.dataset.msgId = messageID;
+        btn.dataset.emoji = emoji;
+        btn.innerHTML = `<span class="reaction-emoji">${emoji}</span><span class="reaction-count">1</span>`;
+        const toggle = row.querySelector(".emoji-toggle");
+        if (toggle) row.insertBefore(btn, toggle);
+        else row.appendChild(btn);
+      }
+    }
+
+    const picker = document.querySelector(`.emoji-picker[data-msg-id="${messageID}"]`);
+    if (picker) picker.classList.remove("emoji-picker-open");
+
     fetch("/api/reactions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message_id: messageID, emoji: emoji })
     })
       .then(r => r.json())
-      .then(() => this.fetchMessages())
+      .then(data => {
+        if (!data.success && data.message) {
+          alert(data.message);
+          return;
+        }
+        this.fetchMessages();
+      })
       .catch(() => {});
   }
 }

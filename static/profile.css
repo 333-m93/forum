@@ -246,7 +246,7 @@
     color: #3a7a3a;
 }
 
-body.theme-dark .alert-success {
+html.theme-dark .alert-success {
     background: rgba(80, 160, 80, 0.1);
     border-color: rgba(80, 160, 80, 0.15);
     color: #6abf6a;
@@ -258,7 +258,7 @@ body.theme-dark .alert-success {
     color: #a03030;
 }
 
-body.theme-dark .alert-error {
+html.theme-dark .alert-error {
     background: rgba(180, 60, 60, 0.1);
     border-color: rgba(180, 60, 60, 0.15);
     color: #e06060;

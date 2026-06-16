@@ -1,26 +1,26 @@
 function applyTheme(theme) {
-    document.body.classList.toggle('theme-dark', theme === 'dark');
-    document.body.classList.toggle('theme-light', theme === 'light');
-    const button = document.getElementById('theme-toggle');
+    document.documentElement.classList.toggle('theme-dark', theme === 'dark');
+    document.documentElement.classList.toggle('theme-light', theme === 'light');
+    var button = document.getElementById('theme-toggle');
     if (button) {
         button.textContent = theme === 'dark' ? 'Mode clair' : 'Mode sombre';
     }
 }
 
-function initTheme() {
-    const stored = localStorage.getItem('forumTheme');
-    const defaultTheme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    applyTheme(defaultTheme);
+(function () {
+    var stored = localStorage.getItem('forumTheme');
+    var theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    applyTheme(theme);
+})();
 
-    const button = document.getElementById('theme-toggle');
+document.addEventListener('DOMContentLoaded', function () {
+    var button = document.getElementById('theme-toggle');
     if (!button) return;
 
     button.addEventListener('click', function () {
-        const active = document.body.classList.contains('theme-dark') ? 'dark' : 'light';
-        const next = active === 'dark' ? 'light' : 'dark';
+        var active = document.documentElement.classList.contains('theme-dark') ? 'dark' : 'light';
+        var next = active === 'dark' ? 'light' : 'dark';
         localStorage.setItem('forumTheme', next);
         applyTheme(next);
     });
-}
-
-window.addEventListener('DOMContentLoaded', initTheme);
+});

@@ -79,7 +79,6 @@
     align-items: center;
     gap: 6px;
     flex-wrap: wrap;
-    position: relative;
 }
 
 .reaction-btn {
@@ -156,7 +155,6 @@
 
 .emoji-picker {
     display: none;
-    position: absolute;
     background: var(--surface-strong);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -164,11 +162,11 @@
     box-shadow: var(--shadow);
     gap: 4px;
     flex-wrap: wrap;
-    z-index: 20;
+    margin-top: 6px;
 }
 
 .emoji-picker-open {
-    display: flex;
+    display: inline-flex;
 }
 
 .emoji-pick {
