@@ -31,21 +31,12 @@ class ForumChat {
     });
 
     document.addEventListener("click", (e) => {
-      const toggle = e.target.closest(".emoji-toggle");
-      if (!toggle) return;
-      e.preventDefault();
-      const picker = toggle.nextElementSibling;
-      if (picker) picker.classList.toggle("emoji-picker-open");
-    });
-
-    document.addEventListener("click", (e) => {
       const pick = e.target.closest(".emoji-pick");
       if (!pick) return;
       e.preventDefault();
       const picker = pick.closest(".emoji-picker");
       const msgId = parseInt(picker.dataset.msgId);
       const emoji = pick.dataset.emoji;
-      picker.classList.remove("emoji-picker-open");
       this.sendReaction(msgId, emoji);
     });
   }
@@ -109,8 +100,7 @@ class ForumChat {
       </button>`;
     }
 
-    html += `<button class="emoji-toggle" data-msg-id="${m.id}">+</button>`;
-    html += `<div class="emoji-picker" data-msg-id="${m.id}">`;
+    html += `<div class="emoji-picker emoji-picker-open" data-msg-id="${m.id}">`;
     for (const e of this.emojis) {
       html += `<button class="emoji-pick" data-emoji="${e}">${e}</button>`;
     }
