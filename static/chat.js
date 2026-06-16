@@ -7,9 +7,6 @@ class ForumChat {
   }
 
   init() {
-    console.log("Chat.js chargé");
-
-    // CLICK catégorie
     document.addEventListener("click", (e) => {
       const link = e.target.closest(".cat-link");
       if (!link) return;
@@ -19,12 +16,9 @@ class ForumChat {
       const name = link.dataset.catName;
       if (!name) return;
 
-      console.log("📂 Catégorie:", name);
-
       this.openChat(name);
     });
 
-    // SEND message
     document.addEventListener("submit", (e) => {
       if (!e.target.classList.contains("chat-form")) return;
 
@@ -69,11 +63,7 @@ class ForumChat {
     fetch(`/api/messages?category=${encodeURIComponent(this.currentCategory)}`)
       .then(r => r.json())
       .then(data => {
-        if (!data.success) {
-          console.warn("API:", data.message);
-          return;
-        }
-
+        if (!data.success) return;
         this.renderMessages(data.data || []);
       })
       .catch(err => console.error("GET error:", err));
@@ -108,9 +98,7 @@ class ForumChat {
 
     fetch("/api/messages", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         category: this.currentCategory,
         content: content
@@ -122,7 +110,6 @@ class ForumChat {
           alert(data.message || "Erreur");
           return;
         }
-
         input.value = "";
         this.fetchMessages();
       })

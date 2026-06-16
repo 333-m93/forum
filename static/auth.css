@@ -1,0 +1,52 @@
+.auth-card {
+    width: min(520px, 100%);
+    padding: 34px;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-hero {
+    margin-bottom: 24px;
+}
+
+.auth-hero p {
+    margin: 8px 0 0;
+    color: #d2d2d2;
+    line-height: 1.75;
+}
+
+.auth-form {
+    display: grid;
+    gap: 16px;
+}
+
+.auth-form button {
+    border: none;
+    width: 100%;
+    padding: 15px 16px;
+    border-radius: 14px;
+    background: var(--button-bg);
+    color: var(--button-color);
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: filter 0.2s ease, transform 0.2s ease;
+}
+
+.auth-form button:hover,
+.top-nav button:hover {
+    filter: brightness(1.03);
+    transform: translateY(-1px);
+}
+
+.footer-link {
+    margin-top: 26px;
+    font-size: 0.95rem;
+    text-align: center;
+    color: var(--muted);
+}
+
+.footer-link a {
+    color: var(--button-bg);
+    text-decoration: none;
+}

@@ -6,7 +6,6 @@ import (
 )
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
-
 	data := struct {
 		Name       string
 		Categories []string
@@ -36,7 +35,6 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-
 	html := "<h1>" + template.HTMLEscapeString(name) + "</h1>"
 	w.Write([]byte(html))
 }

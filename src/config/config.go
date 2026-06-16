@@ -12,18 +12,15 @@ type Config struct {
 
 func Load() Config {
 	cfg := Config{
-		Port: getEnv("APP_PORT", ":8080"),
-
-		// DB config (NO LOCAL FALLBACK IN PRODUCTION)
+		Port:   getEnv("APP_PORT", ":8080"),
 		DBUser: getEnv("DB_USER", ""),
 		DBPass: getEnv("DB_PASS", ""),
 		DBHost: getEnv("DB_HOST", ""),
 		DBName: getEnv("DB_NAME", ""),
 	}
 
-	// Safety check (important)
 	if cfg.DBHost == "" || cfg.DBUser == "" || cfg.DBName == "" {
-		panic("❌ DB configuration missing (check Render environment variables)")
+		panic("DB configuration missing (check environment variables)")
 	}
 
 	return cfg

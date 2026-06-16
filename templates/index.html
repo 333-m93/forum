@@ -40,18 +40,9 @@
             <div class="categories-grid">
                 {{ range .Categories }}
                 <article class="category-card">
-
                     <h3>{{ . }}</h3>
-
                     <p>Discussions sur {{ . }}</p>
-
-                    <!-- IMPORTANT FIX -->
-                    <a href="#"
-                       class="cat-link"
-                       data-cat-name="{{ . }}">
-                       Ouvrir le chat
-                    </a>
-
+                    <a href="#" class="cat-link" data-cat-name="{{ . }}">Ouvrir le chat</a>
                 </article>
                 {{ end }}
             </div>

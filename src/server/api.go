@@ -6,37 +6,25 @@ import (
 	"strings"
 )
 
-// =====================
-// RESPONSE
-// =====================
 type APIResponse struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message,omitempty"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
-// =====================
-// BODY JSON
-// =====================
 type MessageBody struct {
 	Category string `json:"category"`
 	Content  string `json:"content"`
 }
 
-// =====================
-// MAIN HANDLER
-// =====================
 func messagesAPIHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	switch r.Method {
-
 	case http.MethodGet:
 		handleGetMessages(w, r)
-
 	case http.MethodPost:
 		handlePostMessage(w, r)
-
 	default:
 		json.NewEncoder(w).Encode(APIResponse{
 			Success: false,
@@ -45,11 +33,7 @@ func messagesAPIHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// =====================
-// GET MESSAGES
-// =====================
 func handleGetMessages(w http.ResponseWriter, r *http.Request) {
-
 	categoryName := strings.TrimSpace(r.URL.Query().Get("category"))
 
 	if categoryName == "" {
@@ -84,17 +68,7 @@ func handleGetMessages(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// =====================
-// POST MESSAGE
-// =====================
-func writeJSON(w http.ResponseWriter, status int, data APIResponse) {
-	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(data)
-}
-
 func handlePostMessage(w http.ResponseWriter, r *http.Request) {
-
 	user, err := GetSessionUser(r, dbConn)
 	if err != nil {
 		writeJSON(w, http.StatusUnauthorized, APIResponse{
@@ -148,4 +122,10 @@ func handlePostMessage(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Data:    msg,
 	})
+}
+
+func writeJSON(w http.ResponseWriter, status int, data APIResponse) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(data)
 }

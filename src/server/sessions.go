@@ -9,15 +9,11 @@ import (
 	"time"
 )
 
-// User
 type User struct {
 	ID       int
 	Username string
 }
 
-// ==========================
-// GET SESSION USER
-// ==========================
 func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
@@ -40,11 +36,7 @@ func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
 	}
 
 	if time.Now().After(expiresAt) {
-		_, _ = dbConn.Exec(`
-			DELETE FROM sessions
-			WHERE id = $1
-		`, sessionID)
-
+		_, _ = dbConn.Exec(`DELETE FROM sessions WHERE id = $1`, sessionID)
 		return nil, errors.New("session expired")
 	}
 
@@ -59,15 +51,9 @@ func GetSessionUser(r *http.Request, dbConn *sql.DB) (*User, error) {
 		return nil, err
 	}
 
-	return &User{
-		ID:       userID,
-		Username: username,
-	}, nil
+	return &User{ID: userID, Username: username}, nil
 }
 
-// ==========================
-// CREATE SESSION
-// ==========================
 func CreateSession(userID int, dbConn *sql.DB) (string, error) {
 	sessionIDBytes := make([]byte, 32)
 	_, err := rand.Read(sessionIDBytes)
@@ -86,14 +72,7 @@ func CreateSession(userID int, dbConn *sql.DB) (string, error) {
 	return sessionID, err
 }
 
-// ==========================
-// DESTROY SESSION
-// ==========================
 func DestroySession(sessionID string, dbConn *sql.DB) error {
-	_, err := dbConn.Exec(`
-		DELETE FROM sessions
-		WHERE id = $1
-	`, sessionID)
-
+	_, err := dbConn.Exec(`DELETE FROM sessions WHERE id = $1`, sessionID)
 	return err
 }

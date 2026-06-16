@@ -7,7 +7,6 @@ import (
 )
 
 func main() {
-	log.Println("🚀 Starting forum server...")
-
+	log.Println("Starting forum server...")
 	server.StartServer()
 }
