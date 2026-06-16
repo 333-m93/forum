@@ -64,8 +64,13 @@ func GetCategoryByName(name string, dbConn *sql.DB) (*Category, error) {
 	err := dbConn.QueryRow(`
 		SELECT id, name, description
 		FROM categories
-		WHERE name = $1
-	`, name).Scan(&c.ID, &c.Name, &c.Description)
+		WHERE LOWER(TRIM(name)) = LOWER(TRIM($1))
+		LIMIT 1
+	`, name).Scan(
+		&c.ID,
+		&c.Name,
+		&c.Description,
+	)
 
 	if err != nil {
 		return nil, err

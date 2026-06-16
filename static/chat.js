@@ -143,53 +143,54 @@ class ForumChat {
   }
 
   // =====================
-  // SEND MESSAGE (POST)
-  // =====================
-  sendMessage(form) {
-    if (!this.currentCategory) {
-      alert('Sélectionnez une catégorie');
-      return;
-    }
-
-    const input = form.querySelector('input[type="text"]');
-    const content = input.value.trim();
-
-    if (!content) {
-      alert('Message vide');
-      return;
-    }
-
-    console.log("📤 POST message:", {
-      category: this.currentCategory,
-      content
-    });
-
-    // 🔥 IMPORTANT: FormData OK mais backend doit ParseMultipartForm
-    const formData = new FormData();
-    formData.append('category', this.currentCategory);
-    formData.append('content', content);
-
-    fetch('/api/messages', {
-      method: 'POST',
-      body: formData
-    })
-      .then(res => res.json())
-      .then(data => {
-        console.log("📨 response:", data);
-
-        if (!data.success) {
-          alert(data.message || "Erreur serveur");
-          return;
-        }
-
-        input.value = '';
-        this.fetchMessages();
-      })
-      .catch(err => {
-        console.error("❌ POST error:", err);
-        alert("Erreur réseau");
-      });
+// SEND MESSAGE (POST)
+// =====================
+sendMessage(form) {
+  if (!this.currentCategory) {
+    alert('Sélectionnez une catégorie');
+    return;
   }
+
+  const input = form.querySelector('input[type="text"]');
+  const content = input.value.trim();
+
+  if (!content) {
+    alert('Message vide');
+    return;
+  }
+
+  console.log("📤 POST message:", {
+    category: this.currentCategory,
+    content
+  });
+
+  fetch('/api/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      category: this.currentCategory,
+      content: content
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      console.log("📨 response:", data);
+
+      if (!data.success) {
+        alert(data.message || "Erreur serveur");
+        return;
+      }
+
+      input.value = '';
+      this.fetchMessages();
+    })
+    .catch(err => {
+      console.error("❌ POST error:", err);
+      alert("Erreur réseau");
+    });
+}
 }
 
 document.addEventListener('DOMContentLoaded', () => {
